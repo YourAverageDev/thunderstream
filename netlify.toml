@@ -1,0 +1,10 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+  NITRO_PRESET = "netlify"
+
+# Nitro's Netlify preset writes its own function/redirect config into the
+# publish dir at build time, so no extra [[redirects]] blocks are needed here.
