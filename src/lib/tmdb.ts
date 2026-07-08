@@ -1,24 +1,24 @@
-const TMDB_BASE = "https://api.themoviedb.org/3";
+const TMDB_BASE = "/api/tmdb";
 export const IMG = (path: string | null | undefined, size: "w200" | "w300" | "w500" | "w780" | "original" = "w500") =>
   path ? `https://image.tmdb.org/t/p/${size}${path}` : "";
 
-const API_KEY = import.meta.env.VITE_TMDB_API_KEY as string | undefined;
-
 async function get<T>(path: string, params: Record<string, string | number | undefined> = {}): Promise<T> {
-  if (!API_KEY) {
-    throw new Error(
-      "Missing TMDB API key. Add VITE_TMDB_API_KEY to your project secrets (get a free key at themoviedb.org).",
-    );
-  }
-  const url = new URL(`${TMDB_BASE}${path}`);
-  url.searchParams.set("api_key", API_KEY);
+  const url = new URL(`${TMDB_BASE}${path}`, typeof window === "undefined" ? "http://localhost" : window.location.origin);
   for (const [k, v] of Object.entries(params)) {
     if (v !== undefined && v !== "") url.searchParams.set(k, String(v));
   }
-  const res = await fetch(url.toString());
-  if (!res.ok) throw new Error(`TMDB ${res.status}`);
+  const res = await fetch(url.pathname + url.search);
+  if (!res.ok) {
+    let msg = `TMDB ${res.status}`;
+    try {
+      const body = await res.json();
+      if (body?.error) msg = body.error;
+    } catch {}
+    throw new Error(msg);
+  }
   return res.json() as Promise<T>;
 }
+
 
 export type Media = {
   id: number;
