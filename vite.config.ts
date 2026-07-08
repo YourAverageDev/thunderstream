@@ -12,4 +12,8 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  // Outside a Lovable build (e.g. when deploying from GitHub to Netlify), Nitro
+  // targets Netlify Functions. Inside Lovable, this is ignored and Cloudflare
+  // is forced. Netlify env auto-detection also works if this is removed.
+  nitro: { preset: "netlify" },
 });
