@@ -2,7 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { tmdb, IMG } from "@/lib/tmdb";
-import { streamUrls, PROVIDER_NAME } from "@/lib/stream";
+import { getProvider } from "@/lib/stream";
+import { ProviderSelect, useProvider } from "@/components/ProviderSelect";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { MovieRow } from "@/components/MovieRow";
@@ -91,7 +92,7 @@ function MoviePage() {
             >
               <Play className="h-5 w-5" fill="currentColor" /> Play Movie
             </button>
-            <p className="text-xs text-muted-foreground">Streamed via {PROVIDER_NAME}</p>
+            <div className="pt-1"><ProviderSelect value={providerId} onChange={setProviderId} /></div>
           </div>
         </div>
       </section>
@@ -112,7 +113,7 @@ function MoviePage() {
           </button>
           <div className="w-full max-w-6xl aspect-video rounded-2xl overflow-hidden border border-border shadow-2xl bg-black">
             <iframe
-              src={streamUrls.movie(data.id)}
+              src={getProvider(providerId).movie(data.id)}
               allowFullScreen
               allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
               referrerPolicy="no-referrer"

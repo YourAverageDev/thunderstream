@@ -2,7 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { tmdb, IMG } from "@/lib/tmdb";
-import { streamUrls, PROVIDER_NAME } from "@/lib/stream";
+import { getProvider } from "@/lib/stream";
+import { ProviderSelect, useProvider } from "@/components/ProviderSelect";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Play, Star, Calendar, ArrowLeft, X } from "lucide-react";
@@ -127,11 +128,11 @@ function TvPage() {
           </button>
           <div className="w-full max-w-6xl space-y-3">
             <div className="text-sm text-muted-foreground">
-              S{season} · E{episode} · Streaming via {PROVIDER_NAME}
+              S{season} · E{episode} · <ProviderSelect value={providerId} onChange={setProviderId} />
             </div>
             <div className="aspect-video rounded-2xl overflow-hidden border border-border shadow-2xl bg-black">
               <iframe
-                src={streamUrls.tv(data.id, season, episode)}
+                src={getProvider(providerId).tv(data.id, season, episode)}
                 allowFullScreen
                 allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
                 referrerPolicy="no-referrer"
