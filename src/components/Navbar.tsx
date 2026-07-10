@@ -1,11 +1,20 @@
-import { Link } from "@tanstack/react-router";
-import { Zap, Search } from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { Zap, Search, LogOut, User as UserIcon } from "lucide-react";
 import { useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { useAuth } from "@/hooks/useAuth";
+import { signOut } from "@/lib/auth";
+import { usernameFromEmail } from "@/lib/auth";
 
 export function Navbar() {
   const navigate = useNavigate();
   const [q, setQ] = useState("");
+  const { user } = useAuth();
+  const username = user?.user_metadata?.username || usernameFromEmail(user?.email);
+
+  async function handleSignOut() {
+    await signOut();
+    navigate({ to: "/" });
+  }
 
   return (
     <header className="fixed top-0 z-50 w-full backdrop-blur-xl bg-background/70 border-b border-border/50">
@@ -32,6 +41,9 @@ export function Navbar() {
           <Link to="/tv" className="hover:text-foreground transition-colors" activeProps={{ className: "text-foreground" }}>
             TV Shows
           </Link>
+          <Link to="/anime" className="hover:text-foreground transition-colors" activeProps={{ className: "text-foreground" }}>
+            Anime
+          </Link>
         </nav>
 
         <form
@@ -51,6 +63,29 @@ export function Navbar() {
             />
           </div>
         </form>
+
+        {user ? (
+          <div className="flex items-center gap-2">
+            <span className="hidden sm:inline-flex items-center gap-1.5 text-sm text-muted-foreground">
+              <UserIcon className="h-4 w-4" />
+              {username}
+            </span>
+            <button
+              onClick={handleSignOut}
+              title="Sign out"
+              className="grid h-9 w-9 place-items-center rounded-full bg-secondary/60 border border-border/50 hover:bg-secondary transition"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
+          </div>
+        ) : (
+          <Link
+            to="/auth"
+            className="inline-flex items-center gap-1.5 h-9 px-4 rounded-full bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition"
+          >
+            Sign in
+          </Link>
+        )}
       </div>
     </header>
   );
