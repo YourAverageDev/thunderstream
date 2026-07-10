@@ -13,10 +13,12 @@ import { Route as TvRouteImport } from './routes/tv'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as MoviesRouteImport } from './routes/movies'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AnimeRouteImport } from './routes/anime'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TvIdRouteImport } from './routes/tv.$id'
 import { Route as MovieIdRouteImport } from './routes/movie.$id'
 import { Route as ApiOmdbRouteImport } from './routes/api/omdb'
+import { Route as AnimeIdRouteImport } from './routes/anime.$id'
 import { Route as ApiTvmazeSplatRouteImport } from './routes/api/tvmaze.$'
 import { Route as ApiTmdbSplatRouteImport } from './routes/api/tmdb.$'
 import { Route as ApiJikanSplatRouteImport } from './routes/api/jikan.$'
@@ -41,6 +43,11 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AnimeRoute = AnimeRouteImport.update({
+  id: '/anime',
+  path: '/anime',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -61,6 +68,11 @@ const ApiOmdbRoute = ApiOmdbRouteImport.update({
   path: '/api/omdb',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AnimeIdRoute = AnimeIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AnimeRoute,
+} as any)
 const ApiTvmazeSplatRoute = ApiTvmazeSplatRouteImport.update({
   id: '/api/tvmaze/$',
   path: '/api/tvmaze/$',
@@ -79,10 +91,12 @@ const ApiJikanSplatRoute = ApiJikanSplatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/anime': typeof AnimeRouteWithChildren
   '/auth': typeof AuthRoute
   '/movies': typeof MoviesRoute
   '/search': typeof SearchRoute
   '/tv': typeof TvRouteWithChildren
+  '/anime/$id': typeof AnimeIdRoute
   '/api/omdb': typeof ApiOmdbRoute
   '/movie/$id': typeof MovieIdRoute
   '/tv/$id': typeof TvIdRoute
@@ -92,10 +106,12 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/anime': typeof AnimeRouteWithChildren
   '/auth': typeof AuthRoute
   '/movies': typeof MoviesRoute
   '/search': typeof SearchRoute
   '/tv': typeof TvRouteWithChildren
+  '/anime/$id': typeof AnimeIdRoute
   '/api/omdb': typeof ApiOmdbRoute
   '/movie/$id': typeof MovieIdRoute
   '/tv/$id': typeof TvIdRoute
@@ -106,10 +122,12 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/anime': typeof AnimeRouteWithChildren
   '/auth': typeof AuthRoute
   '/movies': typeof MoviesRoute
   '/search': typeof SearchRoute
   '/tv': typeof TvRouteWithChildren
+  '/anime/$id': typeof AnimeIdRoute
   '/api/omdb': typeof ApiOmdbRoute
   '/movie/$id': typeof MovieIdRoute
   '/tv/$id': typeof TvIdRoute
@@ -121,10 +139,12 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/anime'
     | '/auth'
     | '/movies'
     | '/search'
     | '/tv'
+    | '/anime/$id'
     | '/api/omdb'
     | '/movie/$id'
     | '/tv/$id'
@@ -134,10 +154,12 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/anime'
     | '/auth'
     | '/movies'
     | '/search'
     | '/tv'
+    | '/anime/$id'
     | '/api/omdb'
     | '/movie/$id'
     | '/tv/$id'
@@ -147,10 +169,12 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/anime'
     | '/auth'
     | '/movies'
     | '/search'
     | '/tv'
+    | '/anime/$id'
     | '/api/omdb'
     | '/movie/$id'
     | '/tv/$id'
@@ -161,6 +185,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AnimeRoute: typeof AnimeRouteWithChildren
   AuthRoute: typeof AuthRoute
   MoviesRoute: typeof MoviesRoute
   SearchRoute: typeof SearchRoute
@@ -202,6 +227,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/anime': {
+      id: '/anime'
+      path: '/anime'
+      fullPath: '/anime'
+      preLoaderRoute: typeof AnimeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -230,6 +262,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiOmdbRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/anime/$id': {
+      id: '/anime/$id'
+      path: '/$id'
+      fullPath: '/anime/$id'
+      preLoaderRoute: typeof AnimeIdRouteImport
+      parentRoute: typeof AnimeRoute
+    }
     '/api/tvmaze/$': {
       id: '/api/tvmaze/$'
       path: '/api/tvmaze/$'
@@ -254,6 +293,16 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AnimeRouteChildren {
+  AnimeIdRoute: typeof AnimeIdRoute
+}
+
+const AnimeRouteChildren: AnimeRouteChildren = {
+  AnimeIdRoute: AnimeIdRoute,
+}
+
+const AnimeRouteWithChildren = AnimeRoute._addFileChildren(AnimeRouteChildren)
+
 interface TvRouteChildren {
   TvIdRoute: typeof TvIdRoute
 }
@@ -266,6 +315,7 @@ const TvRouteWithChildren = TvRoute._addFileChildren(TvRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AnimeRoute: AnimeRouteWithChildren,
   AuthRoute: AuthRoute,
   MoviesRoute: MoviesRoute,
   SearchRoute: SearchRoute,
