@@ -16,6 +16,7 @@ function TvPage() {
   const { id } = Route.useParams();
   const [season, setSeason] = useState(1);
   const [episode, setEpisode] = useState<number | null>(null);
+  const [providerId, setProviderId] = useProvider();
 
   const { data, isLoading, error } = useQuery({ queryKey: ["tv", id], queryFn: () => tmdb.tvDetails(id) });
   const { data: seasonData } = useQuery({

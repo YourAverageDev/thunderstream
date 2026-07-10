@@ -16,6 +16,7 @@ export const Route = createFileRoute("/movie/$id")({
 function MoviePage() {
   const { id } = Route.useParams();
   const [playing, setPlaying] = useState(false);
+  const [providerId, setProviderId] = useProvider();
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["movie", id],
