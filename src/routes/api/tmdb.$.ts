@@ -4,9 +4,9 @@ export const Route = createFileRoute("/api/tmdb/$")({
   server: {
     handlers: {
       GET: async ({ request, params }) => {
-        const apiKey = process.env.TMDB_API_KEY;
+        const apiKey = process.env.TMDB_API_KEY || process.env.tmdb_api_key;
         if (!apiKey) {
-          return Response.json({ error: "TMDB_API_KEY is not configured" }, { status: 500 });
+          return Response.json({ error: "TMDB API key is not configured. Add TMDB_API_KEY in your deployment environment variables." }, { status: 500 });
         }
         const path = (params as { _splat: string })._splat;
         const inUrl = new URL(request.url);
