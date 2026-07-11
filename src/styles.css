@@ -98,3 +98,116 @@
 @utility hero-fade {
   background: var(--gradient-hero);
 }
+
+/* ---------- Global focus visibility (helps keyboards + remotes) ---------- */
+@layer base {
+  :focus-visible {
+    outline: 3px solid var(--thunder);
+    outline-offset: 3px;
+    border-radius: 8px;
+    box-shadow: 0 0 0 6px oklch(0.78 0.19 65 / 0.25);
+    transition: outline-offset 120ms ease, box-shadow 120ms ease;
+  }
+}
+
+/* ============================================================
+   TV MODE — activated by <html class="tv-mode"> (Fire TV / Android TV)
+   Goals:
+     * D-pad friendly (huge, obvious focus)
+     * No stretched images (always object-contain on hero backdrops,
+       object-cover kept only for posters where 2:3 is guaranteed)
+     * Comfortable 10-foot reading size
+     * TV-safe area padding (overscan)
+     * Landscape only — portrait shows a rotate prompt
+   ============================================================ */
+
+html.tv-mode,
+html.tv-mode body {
+  /* 10-foot UI: scale everything up */
+  font-size: 20px;
+  cursor: none;
+}
+
+html.tv-mode * {
+  /* Kill hover-only scale/translate effects that never trigger on a remote */
+  transition-property: outline, outline-offset, box-shadow, background-color,
+    color, border-color, opacity, transform;
+}
+
+/* TV-safe area (typical 5% overscan on old panels) */
+html.tv-mode main,
+html.tv-mode header,
+html.tv-mode footer {
+  padding-left: max(2.5vw, 24px);
+  padding-right: max(2.5vw, 24px);
+}
+
+/* Focus ring: MASSIVE and unmissable on TV */
+html.tv-mode :focus-visible {
+  outline: 4px solid var(--thunder);
+  outline-offset: 6px;
+  box-shadow:
+    0 0 0 8px oklch(0.78 0.19 65 / 0.35),
+    0 12px 40px -8px oklch(0.78 0.19 65 / 0.6);
+  transform: scale(1.04);
+  z-index: 5;
+  position: relative;
+}
+
+/* Poster cards: bigger + no hover-only reveal on TV */
+html.tv-mode .group {
+  scroll-margin: 120px;
+}
+html.tv-mode a.group > div:first-child {
+  /* poster wrapper — keep 2:3, never stretch */
+  aspect-ratio: 2 / 3;
+}
+html.tv-mode a.group img {
+  object-fit: cover;   /* posters ARE 2:3 so cover == no distortion */
+}
+
+/* Hero / backdrop images: on TV, DO NOT crop-stretch. Letterbox is fine. */
+html.tv-mode section img[alt],
+html.tv-mode .hero-backdrop img {
+  object-fit: contain !important;
+  object-position: center;
+  background: #000;
+}
+
+/* Iframes for players — keep 16:9 exactly, no stretch */
+html.tv-mode iframe {
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  height: auto;
+  max-height: 100vh;
+}
+
+/* Larger nav & buttons for remote comfort */
+html.tv-mode header nav a,
+html.tv-mode header a,
+html.tv-mode button {
+  font-size: 1.05rem;
+}
+html.tv-mode input {
+  font-size: 1.1rem;
+  height: 3rem;
+}
+
+/* Portrait lock — if a TV/APK somehow lands in portrait, tell the user */
+@media (orientation: portrait) {
+  html.tv-mode body > * { display: none !important; }
+  html.tv-mode body::before {
+    content: "Rotate to landscape";
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-display);
+    font-size: 2rem;
+    letter-spacing: 0.1em;
+    z-index: 9999;
+  }
+}
+
