@@ -6,12 +6,13 @@ export function MovieCard({ item }: { item: Media }) {
   const kind: "movie" | "tv" = item.media_type === "tv" || item.first_air_date ? "tv" : "movie";
   const title = item.title || item.name || "Untitled";
   const year = (item.release_date || item.first_air_date || "").slice(0, 4);
-  const to = kind === "movie" ? "/movie/$id" : "/tv/$id";
+  const linkProps = kind === "movie"
+    ? { to: "/movie/$id" as const, params: { id: String(item.id) } }
+    : { to: "/tv/$id" as const, params: { id: String(item.id) } };
 
   return (
     <Link
-      to={to}
-      params={{ id: String(item.id) }}
+      {...linkProps}
       className="group relative block w-[180px] md:w-[200px] shrink-0"
     >
       <div className="relative aspect-[2/3] overflow-hidden rounded-xl bg-secondary">
