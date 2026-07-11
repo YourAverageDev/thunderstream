@@ -80,6 +80,7 @@ If you enjoy ThunderStream, please consider giving the project a ⭐ and sharing
 Made with ❤️ for movie lovers.
 
 ## 🚀 Download Now
+(Click On the Button below to download latest release)
 
 [![Download Latest Release](https://img.shields.io/badge/Download-Latest%20Release-blue?style=for-the-badge&logo=github)](https://github.com/YourAverageDev/thunderstream/releases)
 ```0
@@ -87,5 +88,3 @@ Made with ❤️ for movie lovers.
 
 
 
-
-</div>
