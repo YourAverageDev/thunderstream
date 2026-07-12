@@ -6,7 +6,7 @@ import { getProvider } from "@/lib/stream";
 import { ProviderSelect, useProvider } from "@/components/ProviderSelect";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { Play, Star, Calendar, ArrowLeft, X } from "lucide-react";
+import { Play, Star, Calendar, ArrowLeft, X, ExternalLink } from "lucide-react";
 
 export const Route = createFileRoute("/tv/$id")({
   component: TvPage,
