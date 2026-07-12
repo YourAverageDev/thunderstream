@@ -105,18 +105,32 @@ function MoviePage() {
       <Footer />
 
       {playing && (
-        <div className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-4">
-          <button
-            onClick={() => setPlaying(false)}
-            className="absolute top-4 right-4 z-10 grid h-10 w-10 place-items-center rounded-full bg-secondary/80 hover:bg-secondary"
-          >
-            <X className="h-5 w-5" />
-          </button>
+        <div className="fixed inset-0 z-[100] bg-black/95 flex flex-col items-center justify-center p-4 gap-3">
+          <div className="w-full max-w-6xl flex items-center justify-between gap-3 flex-wrap">
+            <ProviderSelect value={providerId} onChange={setProviderId} />
+            <div className="flex items-center gap-2">
+              <a
+                href={getProvider(providerId).movie(data.id)}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 h-9 px-3 rounded-full bg-secondary/80 hover:bg-secondary text-xs"
+              >
+                <ExternalLink className="h-3.5 w-3.5" /> Open externally
+              </a>
+              <button
+                onClick={() => setPlaying(false)}
+                className="grid h-9 w-9 place-items-center rounded-full bg-secondary/80 hover:bg-secondary"
+                aria-label="Close"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
           <div className="w-full max-w-6xl aspect-video rounded-2xl overflow-hidden border border-border shadow-2xl bg-black">
             <iframe
               src={getProvider(providerId).movie(data.id)}
               allowFullScreen
-              allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+              allow="autoplay; encrypted-media; picture-in-picture; fullscreen; accelerometer; gyroscope"
               referrerPolicy="no-referrer"
               className="h-full w-full"
               title={data.title}
