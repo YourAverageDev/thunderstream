@@ -123,24 +123,39 @@ function TvPage() {
       <Footer />
 
       {episode !== null && (
-        <div className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-4">
-          <button onClick={() => setEpisode(null)} className="absolute top-4 right-4 z-10 grid h-10 w-10 place-items-center rounded-full bg-secondary/80 hover:bg-secondary">
-            <X className="h-5 w-5" />
-          </button>
-          <div className="w-full max-w-6xl space-y-3">
-            <div className="text-sm text-muted-foreground">
-              S{season} · E{episode} · <ProviderSelect value={providerId} onChange={setProviderId} />
+        <div className="fixed inset-0 z-[100] bg-black/95 flex flex-col items-center justify-center p-4 gap-3">
+          <div className="w-full max-w-6xl flex items-center justify-between gap-3 flex-wrap">
+            <div className="text-sm text-muted-foreground flex items-center gap-3 flex-wrap">
+              <span>S{season} · E{episode}</span>
+              <ProviderSelect value={providerId} onChange={setProviderId} />
             </div>
-            <div className="aspect-video rounded-2xl overflow-hidden border border-border shadow-2xl bg-black">
-              <iframe
-                src={getProvider(providerId).tv(data.id, season, episode)}
-                allowFullScreen
-                allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-                referrerPolicy="no-referrer"
-                className="h-full w-full"
-                title={`${data.name} S${season}E${episode}`}
-              />
+            <div className="flex items-center gap-2">
+              <a
+                href={getProvider(providerId).tv(data.id, season, episode)}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 h-9 px-3 rounded-full bg-secondary/80 hover:bg-secondary text-xs"
+              >
+                <ExternalLink className="h-3.5 w-3.5" /> Open externally
+              </a>
+              <button
+                onClick={() => setEpisode(null)}
+                className="grid h-9 w-9 place-items-center rounded-full bg-secondary/80 hover:bg-secondary"
+                aria-label="Close"
+              >
+                <X className="h-4 w-4" />
+              </button>
             </div>
+          </div>
+          <div className="w-full max-w-6xl aspect-video rounded-2xl overflow-hidden border border-border shadow-2xl bg-black">
+            <iframe
+              src={getProvider(providerId).tv(data.id, season, episode)}
+              allowFullScreen
+              allow="autoplay; encrypted-media; picture-in-picture; fullscreen; accelerometer; gyroscope"
+              referrerPolicy="no-referrer"
+              className="h-full w-full"
+              title={`${data.name} S${season}E${episode}`}
+            />
           </div>
         </div>
       )}
