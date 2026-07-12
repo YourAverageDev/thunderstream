@@ -5,7 +5,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Star } from "lucide-react";
 
-export const Route = createFileRoute("/anime")({
+export const Route = createFileRoute("/anime/")({
   component: AnimePage,
   head: () => ({
     meta: [
