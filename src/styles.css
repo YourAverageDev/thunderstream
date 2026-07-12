@@ -174,12 +174,14 @@ html.tv-mode .hero-backdrop img {
   background: #000;
 }
 
-/* Iframes for players — keep 16:9 exactly, no stretch */
+/* Iframes for players — let the wrapper control size; don't force height:auto
+   which can collapse the <video> inside on WebView/Fire TV and show only
+   audio + subtitles. */
 html.tv-mode iframe {
-  aspect-ratio: 16 / 9;
   width: 100%;
-  height: auto;
-  max-height: 100vh;
+  height: 100%;
+  display: block;
+  background: #000;
 }
 
 /* Larger nav & buttons for remote comfort */
