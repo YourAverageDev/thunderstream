@@ -14,8 +14,8 @@ export function isTvDevice(): boolean {
   if (typeof window === "undefined") return false;
   try {
     const url = new URL(window.location.href);
+    if (url.searchParams.get("tv") === "0") return false;
     if (url.searchParams.get("tv") === "1") return true;
-    if (localStorage.getItem("tm-tv-mode") === "1") return true;
   } catch {}
 
   const ua = navigator.userAgent || "";
