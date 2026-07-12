@@ -5,7 +5,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { MovieCard } from "@/components/MovieCard";
 
-export const Route = createFileRoute("/tv")({
+export const Route = createFileRoute("/tv/")({
   head: () => ({
     meta: [
       { title: "TV Shows — ThunderMovies" },
