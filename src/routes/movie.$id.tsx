@@ -7,7 +7,7 @@ import { ProviderSelect, useProvider } from "@/components/ProviderSelect";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { MovieRow } from "@/components/MovieRow";
-import { Play, Star, Clock, Calendar, ArrowLeft, X } from "lucide-react";
+import { Play, Star, Clock, Calendar, ArrowLeft, X, ExternalLink } from "lucide-react";
 
 export const Route = createFileRoute("/movie/$id")({
   component: MoviePage,
