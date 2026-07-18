@@ -41,11 +41,12 @@ function TvPage() {
 
   const year = (data.first_air_date || "").slice(0, 4);
   const validSeasons = data.seasons.filter((s) => s.season_number > 0);
-  const episodeStreamUrl = episode !== null ? getTvStreamUrl(data.id, season, episode, providerId, isTvMode) : "";
+  const tvId = data.id;
+  const episodeStreamUrl = episode !== null ? getTvStreamUrl(tvId, season, episode, providerId, isTvMode) : "";
 
   function playEpisode(episodeNumber: number) {
     if (isTvMode) {
-      window.location.assign(getTvStreamUrl(data.id, season, episodeNumber, providerId, true));
+      window.location.assign(getTvStreamUrl(tvId, season, episodeNumber, providerId, true));
       return;
     }
     setEpisode(episodeNumber);
