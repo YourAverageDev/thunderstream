@@ -1,11 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { tmdb, IMG } from "@/lib/tmdb";
-import { getProvider } from "@/lib/stream";
+import { getMovieStreamUrl, getTvSafeProvider, saveProvider } from "@/lib/stream";
 import { ProviderSelect, useProvider } from "@/components/ProviderSelect";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { useIsTvMode } from "@/hooks/useTvMode";
 import { MovieRow } from "@/components/MovieRow";
 import { Play, Star, Clock, Calendar, ArrowLeft, X, ExternalLink } from "lucide-react";
 
@@ -17,6 +18,7 @@ function MoviePage() {
   const { id } = Route.useParams();
   const [playing, setPlaying] = useState(false);
   const [providerId, setProviderId] = useProvider();
+  const isTvMode = useIsTvMode();
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["movie", id],
@@ -26,6 +28,15 @@ function MoviePage() {
     queryKey: ["movie", id, "similar"],
     queryFn: () => tmdb.similar("movie", id),
   });
+
+  useEffect(() => {
+    if (!isTvMode) return;
+    const safeProvider = getTvSafeProvider(providerId);
+    if (safeProvider !== providerId) {
+      saveProvider(safeProvider);
+      setProviderId(safeProvider);
+    }
+  }, [isTvMode, providerId, setProviderId]);
 
   if (isLoading) return <div className="min-h-screen"><Navbar /><div className="pt-32 text-center text-muted-foreground">Loading…</div></div>;
   if (error || !data)
@@ -39,6 +50,15 @@ function MoviePage() {
   const year = (data.release_date || "").slice(0, 4);
   const hours = Math.floor((data.runtime || 0) / 60);
   const mins = (data.runtime || 0) % 60;
+  const streamUrl = getMovieStreamUrl(data.id, providerId, isTvMode);
+
+  function playMovie() {
+    if (isTvMode) {
+      window.location.assign(streamUrl);
+      return;
+    }
+    setPlaying(true);
+  }
 
   return (
     <div className="min-h-screen">
@@ -87,7 +107,7 @@ function MoviePage() {
             </div>
             <p className="text-base text-muted-foreground max-w-2xl leading-relaxed">{data.overview}</p>
             <button
-              onClick={() => setPlaying(true)}
+              onClick={playMovie}
               className="inline-flex items-center gap-2 rounded-full px-8 py-3.5 font-semibold text-primary-foreground transition hover:scale-105"
               style={{ background: "var(--gradient-thunder)", boxShadow: "var(--shadow-glow)" }}
             >
@@ -110,7 +130,7 @@ function MoviePage() {
             <ProviderSelect value={providerId} onChange={setProviderId} />
             <div className="flex items-center gap-2">
               <a
-                href={getProvider(providerId).movie(data.id)}
+                href={streamUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center gap-1.5 h-9 px-3 rounded-full bg-secondary/80 hover:bg-secondary text-xs"
@@ -128,11 +148,11 @@ function MoviePage() {
           </div>
           <div className="w-full max-w-6xl aspect-video rounded-2xl overflow-hidden border border-border shadow-2xl bg-black">
             <iframe
-              src={getProvider(providerId).movie(data.id)}
+              src={streamUrl}
               allowFullScreen
               allow="autoplay; encrypted-media; picture-in-picture; fullscreen; accelerometer; gyroscope"
               referrerPolicy="no-referrer"
-              className="h-full w-full"
+              className="stream-frame h-full w-full"
               title={data.title}
             />
           </div>

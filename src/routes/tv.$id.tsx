@@ -1,11 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { tmdb, IMG } from "@/lib/tmdb";
-import { getProvider } from "@/lib/stream";
+import { getTvSafeProvider, getTvStreamUrl, saveProvider } from "@/lib/stream";
 import { ProviderSelect, useProvider } from "@/components/ProviderSelect";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { useIsTvMode } from "@/hooks/useTvMode";
 import { Play, Star, Calendar, ArrowLeft, X, ExternalLink } from "lucide-react";
 
 export const Route = createFileRoute("/tv/$id")({
@@ -17,6 +18,7 @@ function TvPage() {
   const [season, setSeason] = useState(1);
   const [episode, setEpisode] = useState<number | null>(null);
   const [providerId, setProviderId] = useProvider();
+  const isTvMode = useIsTvMode();
 
   const { data, isLoading, error } = useQuery({ queryKey: ["tv", id], queryFn: () => tmdb.tvDetails(id) });
   const { data: seasonData } = useQuery({
@@ -25,11 +27,29 @@ function TvPage() {
     enabled: !!data,
   });
 
+  useEffect(() => {
+    if (!isTvMode) return;
+    const safeProvider = getTvSafeProvider(providerId);
+    if (safeProvider !== providerId) {
+      saveProvider(safeProvider);
+      setProviderId(safeProvider);
+    }
+  }, [isTvMode, providerId, setProviderId]);
+
   if (isLoading) return <div className="min-h-screen"><Navbar /><div className="pt-32 text-center text-muted-foreground">Loading…</div></div>;
   if (error || !data) return <div className="min-h-screen"><Navbar /><div className="pt-32 text-center">Show not found.</div></div>;
 
   const year = (data.first_air_date || "").slice(0, 4);
   const validSeasons = data.seasons.filter((s) => s.season_number > 0);
+  const episodeStreamUrl = episode !== null ? getTvStreamUrl(data.id, season, episode, providerId, isTvMode) : "";
+
+  function playEpisode(episodeNumber: number) {
+    if (isTvMode) {
+      window.location.assign(getTvStreamUrl(data.id, season, episodeNumber, providerId, true));
+      return;
+    }
+    setEpisode(episodeNumber);
+  }
 
   return (
     <div className="min-h-screen">
@@ -73,26 +93,29 @@ function TvPage() {
 
       {/* Season / Episode picker */}
       <section className="mx-auto max-w-[1600px] px-4 md:px-8 py-8">
-        <div className="flex items-center justify-between gap-4 mb-6">
+        <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
           <h2 className="font-display text-2xl md:text-3xl tracking-wide">Episodes</h2>
-          <select
-            value={season}
-            onChange={(e) => { setSeason(Number(e.target.value)); setEpisode(null); }}
-            className="h-10 px-4 rounded-full bg-secondary border border-border text-sm outline-none focus:border-primary"
-          >
-            {validSeasons.map((s) => (
-              <option key={s.id} value={s.season_number}>
-                Season {s.season_number}
-              </option>
-            ))}
-          </select>
+          <div className="flex items-center gap-3 flex-wrap">
+            <ProviderSelect value={providerId} onChange={setProviderId} />
+            <select
+              value={season}
+              onChange={(e) => { setSeason(Number(e.target.value)); setEpisode(null); }}
+              className="h-10 px-4 rounded-full bg-secondary border border-border text-sm outline-none focus:border-primary"
+            >
+              {validSeasons.map((s) => (
+                <option key={s.id} value={s.season_number}>
+                  Season {s.season_number}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <div className="grid gap-3">
           {seasonData?.episodes.map((ep) => (
             <button
               key={ep.id}
-              onClick={() => setEpisode(ep.episode_number)}
+              onClick={() => playEpisode(ep.episode_number)}
               className="group flex flex-col md:flex-row gap-4 rounded-2xl border border-border bg-card/50 hover:bg-card p-3 text-left transition"
             >
               <div className="relative w-full md:w-56 aspect-video shrink-0 rounded-xl overflow-hidden bg-secondary">
@@ -131,7 +154,7 @@ function TvPage() {
             </div>
             <div className="flex items-center gap-2">
               <a
-                href={getProvider(providerId).tv(data.id, season, episode)}
+                href={episodeStreamUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center gap-1.5 h-9 px-3 rounded-full bg-secondary/80 hover:bg-secondary text-xs"
@@ -149,11 +172,11 @@ function TvPage() {
           </div>
           <div className="w-full max-w-6xl aspect-video rounded-2xl overflow-hidden border border-border shadow-2xl bg-black">
             <iframe
-              src={getProvider(providerId).tv(data.id, season, episode)}
+              src={episodeStreamUrl}
               allowFullScreen
               allow="autoplay; encrypted-media; picture-in-picture; fullscreen; accelerometer; gyroscope"
               referrerPolicy="no-referrer"
-              className="h-full w-full"
+              className="stream-frame h-full w-full"
               title={`${data.name} S${season}E${episode}`}
             />
           </div>
