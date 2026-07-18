@@ -83,6 +83,33 @@
   }
 }
 
+/* Force a landscape canvas even when the host WebView/browser opens portrait. */
+html.landscape-app,
+html.landscape-app body {
+  min-width: 100%;
+  min-height: 100%;
+}
+
+@media (orientation: portrait) {
+  html.landscape-app {
+    width: 100vh;
+    height: 100vw;
+    overflow: hidden;
+  }
+
+  html.landscape-app body {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vh;
+    height: 100vw;
+    overflow-x: hidden;
+    overflow-y: auto;
+    transform: rotate(90deg) translateY(-100vh);
+    transform-origin: top left;
+  }
+}
+
 @utility scroll-row {
   scrollbar-width: none;
   &::-webkit-scrollbar { display: none; }
@@ -154,6 +181,14 @@ html.tv-mode :focus-visible {
   position: relative;
 }
 
+/* Never transform an embedded player on TV; some WebViews render audio/subtitles
+   but black video when the hardware video surface is inside transformed layers. */
+html.tv-mode iframe:focus-visible,
+html.tv-mode .stream-frame:focus-visible {
+  transform: none;
+  outline-offset: -4px;
+}
+
 /* Poster cards: bigger + no hover-only reveal on TV */
 html.tv-mode .group {
   scroll-margin: 120px;
@@ -182,6 +217,21 @@ html.tv-mode iframe {
   height: 100%;
   display: block;
   background: #000;
+  border: 0;
+  transform: none !important;
+  opacity: 1 !important;
+  filter: none !important;
+  will-change: auto;
+}
+
+html.tv-mode .stream-frame {
+  position: fixed;
+  inset: 0;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 999;
+  border-radius: 0 !important;
+  box-shadow: none !important;
 }
 
 /* Larger nav & buttons for remote comfort */

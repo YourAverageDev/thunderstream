@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
 
+function lockLandscape() {
+  if (typeof screen === "undefined") return;
+  const orientation = (screen as any).orientation;
+  if (orientation?.lock) orientation.lock("landscape").catch(() => {});
+}
+
 /**
  * Detects TV / Fire TV / Android TV / smart TV browsers and toggles
  * a global `tv-mode` class on <html> so CSS can adapt.
@@ -35,17 +41,47 @@ export function useTvMode() {
   const [tv, setTv] = useState(false);
 
   useEffect(() => {
+    const root = document.documentElement;
+    root.classList.add("landscape-app");
+    lockLandscape();
+
+    const retryLandscapeLock = () => lockLandscape();
+    window.addEventListener("click", retryLandscapeLock, { passive: true });
+    window.addEventListener("keydown", retryLandscapeLock, { passive: true });
+    window.addEventListener("touchstart", retryLandscapeLock, { passive: true });
+
     const active = isTvDevice();
     setTv(active);
-    const root = document.documentElement;
     if (active) {
       root.classList.add("tv-mode");
       // Lock landscape when we can (APK / supported browsers)
-      const so = (screen as any).orientation;
-      if (so?.lock) so.lock("landscape").catch(() => {});
+      lockLandscape();
     } else {
       root.classList.remove("tv-mode");
     }
+
+    return () => {
+      window.removeEventListener("click", retryLandscapeLock);
+      window.removeEventListener("keydown", retryLandscapeLock);
+      window.removeEventListener("touchstart", retryLandscapeLock);
+    };
+  }, []);
+
+  return tv;
+}
+
+export function useIsTvMode() {
+  const [tv, setTv] = useState(false);
+
+  useEffect(() => {
+    const update = () => setTv(isTvDevice() || document.documentElement.classList.contains("tv-mode"));
+    update();
+    window.addEventListener("resize", update);
+    window.addEventListener("orientationchange", update);
+    return () => {
+      window.removeEventListener("resize", update);
+      window.removeEventListener("orientationchange", update);
+    };
   }, []);
 
   return tv;

@@ -78,6 +78,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "screen-orientation", content: "landscape" },
+      { name: "x5-orientation", content: "landscape" },
+      { name: "x5-fullscreen", content: "true" },
+      { name: "mobile-web-app-capable", content: "yes" },
       { title: "ThunderMovies — Watch Movies & TV Shows Free Online" },
       { name: "description", content: "Stream trending movies and TV series in HD on ThunderMovies. No signup, no ads clutter — just pure cinema." },
       { property: "og:title", content: "ThunderMovies — Watch Movies & TV Shows Free Online" },
