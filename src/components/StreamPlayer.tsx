@@ -42,8 +42,17 @@ export function StreamPlayer({
       primaryRef.current?.focus();
     }, isTvMode ? 350 : 80);
 
+    const focusWatchdog = isTvMode
+      ? window.setInterval(() => {
+          if (document.activeElement?.tagName === "IFRAME") {
+            primaryRef.current?.focus();
+          }
+        }, 300)
+      : undefined;
+
     return () => {
       window.clearTimeout(focusTimer);
+      if (focusWatchdog) window.clearInterval(focusWatchdog);
       window.removeEventListener("popstate", onPopState);
     };
   }, [isTvMode]);
@@ -153,6 +162,9 @@ export function StreamPlayer({
           title={title}
           tabIndex={-1}
           data-tv-focusable="false"
+          onLoad={() => {
+            if (isTvMode) window.setTimeout(() => primaryRef.current?.focus(), 80);
+          }}
         />
       </div>
     </div>
