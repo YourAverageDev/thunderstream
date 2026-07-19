@@ -23,6 +23,10 @@ function activeScope(): ParentNode {
   return document.querySelector<HTMLElement>('[data-tv-player="open"]') ?? document;
 }
 
+function playerIsOpen() {
+  return !!document.querySelector<HTMLElement>('[data-tv-player="open"]');
+}
+
 function candidates(): HTMLElement[] {
   return Array.from(activeScope().querySelectorAll<HTMLElement>(FOCUSABLE)).filter(visible);
 }
@@ -37,6 +41,16 @@ function move(dir: "up" | "down" | "left" | "right") {
   if (!items.length) return;
   if (!current || current === document.body) {
     preferredCandidate(items)?.focus();
+    return;
+  }
+
+  if (playerIsOpen()) {
+    const index = items.indexOf(current);
+    const nextIndex =
+      dir === "right" || dir === "down"
+        ? index === -1 ? 0 : (index + 1) % items.length
+        : index === -1 ? items.length - 1 : (index - 1 + items.length) % items.length;
+    items[nextIndex]?.focus();
     return;
   }
   const cr = current.getBoundingClientRect();
