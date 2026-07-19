@@ -6,10 +6,10 @@ import { useEffect } from "react";
  * elements to pick the next focus target.
  *
  * Enter / Space / DPAD_CENTER (keyCode 13) → click focused element.
- * Backspace / Escape / DPAD_BACK (keyCode 8, 27, 461) → browser back.
+ * Backspace / Escape / DPAD_BACK (keyCode 8, 27, 461) → close player or browser back.
  */
 const FOCUSABLE =
-  'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"]),iframe';
+  'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
 
 function visible(el: Element) {
   const r = (el as HTMLElement).getBoundingClientRect();
@@ -19,8 +19,20 @@ function visible(el: Element) {
   return cs.visibility !== "hidden" && cs.display !== "none";
 }
 
+function activeScope(): ParentNode {
+  return document.querySelector<HTMLElement>('[data-tv-player="open"]') ?? document;
+}
+
+function playerIsOpen() {
+  return !!document.querySelector<HTMLElement>('[data-tv-player="open"]');
+}
+
 function candidates(): HTMLElement[] {
-  return Array.from(document.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(visible);
+  return Array.from(activeScope().querySelectorAll<HTMLElement>(FOCUSABLE)).filter(visible);
+}
+
+function preferredCandidate(items: HTMLElement[]) {
+  return items.find((el) => el.dataset.tvPrimary === "true") ?? items[0];
 }
 
 function move(dir: "up" | "down" | "left" | "right") {
@@ -28,7 +40,17 @@ function move(dir: "up" | "down" | "left" | "right") {
   const items = candidates();
   if (!items.length) return;
   if (!current || current === document.body) {
-    items[0].focus();
+    preferredCandidate(items)?.focus();
+    return;
+  }
+
+  if (playerIsOpen()) {
+    const index = items.indexOf(current);
+    const nextIndex =
+      dir === "right" || dir === "down"
+        ? index === -1 ? 0 : (index + 1) % items.length
+        : index === -1 ? items.length - 1 : (index - 1 + items.length) % items.length;
+    items[nextIndex]?.focus();
     return;
   }
   const cr = current.getBoundingClientRect();
@@ -63,6 +85,13 @@ function move(dir: "up" | "down" | "left" | "right") {
   }
 }
 
+function closePlayerIfOpen() {
+  const close = document.querySelector<HTMLElement>('[data-tv-player="open"] [data-tv-close="true"]');
+  if (!close) return false;
+  close.click();
+  return true;
+}
+
 export function useSpatialNav(enabled: boolean) {
   useEffect(() => {
     if (!enabled) return;
@@ -80,6 +109,7 @@ export function useSpatialNav(enabled: boolean) {
         case " ": {
           const el = document.activeElement as HTMLElement | null;
           if (el && el !== document.body && !isTyping) {
+            if (el.tagName === "IFRAME") return;
             e.preventDefault();
             el.click();
           }
@@ -91,7 +121,7 @@ export function useSpatialNav(enabled: boolean) {
         case "BrowserBack":
           if (!isTyping) {
             e.preventDefault();
-            history.back();
+            if (!closePlayerIfOpen()) history.back();
           }
           break;
       }
@@ -100,8 +130,7 @@ export function useSpatialNav(enabled: boolean) {
     // Give first focus to first focusable so the remote has a starting point
     setTimeout(() => {
       if (document.activeElement === document.body) {
-        const first = candidates()[0];
-        first?.focus();
+        preferredCandidate(candidates())?.focus();
       }
     }, 300);
     return () => window.removeEventListener("keydown", onKey);

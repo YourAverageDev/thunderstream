@@ -8,7 +8,8 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useIsTvMode } from "@/hooks/useTvMode";
 import { MovieRow } from "@/components/MovieRow";
-import { Play, Star, Clock, Calendar, ArrowLeft, X, ExternalLink } from "lucide-react";
+import { StreamPlayer } from "@/components/StreamPlayer";
+import { Play, Star, Clock, Calendar, ArrowLeft } from "lucide-react";
 
 export const Route = createFileRoute("/movie/$id")({
   component: MoviePage,
@@ -53,10 +54,6 @@ function MoviePage() {
   const streamUrl = getMovieStreamUrl(data.id, providerId, isTvMode);
 
   function playMovie() {
-    if (isTvMode) {
-      window.location.assign(streamUrl);
-      return;
-    }
     setPlaying(true);
   }
 
@@ -110,6 +107,8 @@ function MoviePage() {
               onClick={playMovie}
               className="inline-flex items-center gap-2 rounded-full px-8 py-3.5 font-semibold text-primary-foreground transition hover:scale-105"
               style={{ background: "var(--gradient-thunder)", boxShadow: "var(--shadow-glow)" }}
+              autoFocus={isTvMode}
+              data-tv-primary="true"
             >
               <Play className="h-5 w-5" fill="currentColor" /> Play Movie
             </button>
@@ -125,38 +124,14 @@ function MoviePage() {
       <Footer />
 
       {playing && (
-        <div className="fixed inset-0 z-[100] bg-black/95 flex flex-col items-center justify-center p-4 gap-3">
-          <div className="w-full max-w-6xl flex items-center justify-between gap-3 flex-wrap">
-            <ProviderSelect value={providerId} onChange={setProviderId} />
-            <div className="flex items-center gap-2">
-              <a
-                href={streamUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1.5 h-9 px-3 rounded-full bg-secondary/80 hover:bg-secondary text-xs"
-              >
-                <ExternalLink className="h-3.5 w-3.5" /> Open externally
-              </a>
-              <button
-                onClick={() => setPlaying(false)}
-                className="grid h-9 w-9 place-items-center rounded-full bg-secondary/80 hover:bg-secondary"
-                aria-label="Close"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-          <div className="w-full max-w-6xl aspect-video rounded-2xl overflow-hidden border border-border shadow-2xl bg-black">
-            <iframe
-              src={streamUrl}
-              allowFullScreen
-              allow="autoplay; encrypted-media; picture-in-picture; fullscreen; accelerometer; gyroscope"
-              referrerPolicy="no-referrer"
-              className="stream-frame h-full w-full"
-              title={data.title}
-            />
-          </div>
-        </div>
+        <StreamPlayer
+          title={data.title || "Movie"}
+          streamUrl={streamUrl}
+          providerId={providerId}
+          isTvMode={isTvMode}
+          onProviderChange={setProviderId}
+          onClose={() => setPlaying(false)}
+        />
       )}
     </div>
   );
