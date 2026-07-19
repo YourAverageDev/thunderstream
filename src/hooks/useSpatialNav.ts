@@ -27,12 +27,16 @@ function candidates(): HTMLElement[] {
   return Array.from(activeScope().querySelectorAll<HTMLElement>(FOCUSABLE)).filter(visible);
 }
 
+function preferredCandidate(items: HTMLElement[]) {
+  return items.find((el) => el.dataset.tvPrimary === "true") ?? items[0];
+}
+
 function move(dir: "up" | "down" | "left" | "right") {
   const current = (document.activeElement as HTMLElement | null) ?? null;
   const items = candidates();
   if (!items.length) return;
   if (!current || current === document.body) {
-    items[0].focus();
+    preferredCandidate(items)?.focus();
     return;
   }
   const cr = current.getBoundingClientRect();
@@ -112,8 +116,7 @@ export function useSpatialNav(enabled: boolean) {
     // Give first focus to first focusable so the remote has a starting point
     setTimeout(() => {
       if (document.activeElement === document.body) {
-        const first = candidates()[0];
-        first?.focus();
+        preferredCandidate(candidates())?.focus();
       }
     }, 300);
     return () => window.removeEventListener("keydown", onKey);
