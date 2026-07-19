@@ -60,10 +60,34 @@ export function StreamPlayer({
   function closePlayer() {
     if (window.history.state?.thunderPlayer === markerRef.current) {
       window.history.back();
-      window.setTimeout(onClose, 120);
+      window.setTimeout(() => onCloseRef.current(), 120);
       return;
     }
     onCloseRef.current();
+  }
+
+  function playerControls() {
+    return Array.from(
+      document.querySelectorAll<HTMLElement>('[data-tv-player="open"] button, [data-tv-player="open"] a[href]'),
+    ).filter((element) => {
+      const rect = element.getBoundingClientRect();
+      const style = getComputedStyle(element);
+      return rect.width > 0 && rect.height > 0 && style.display !== "none" && style.visibility !== "hidden";
+    });
+  }
+
+  function movePlayerFocus(direction: "next" | "previous") {
+    const controls = playerControls();
+    if (!controls.length) return;
+    const currentIndex = controls.indexOf(document.activeElement as HTMLElement);
+    const fallbackIndex = direction === "next" ? 0 : controls.length - 1;
+    const nextIndex =
+      currentIndex === -1
+        ? fallbackIndex
+        : direction === "next"
+          ? (currentIndex + 1) % controls.length
+          : (currentIndex - 1 + controls.length) % controls.length;
+    controls[nextIndex]?.focus();
   }
 
   function focusVideo() {
@@ -86,7 +110,32 @@ export function StreamPlayer({
       onKeyDownCapture={(event) => {
         if (["Escape", "Backspace", "GoBack", "BrowserBack"].includes(event.key)) {
           event.preventDefault();
+          event.stopPropagation();
           closePlayer();
+          return;
+        }
+
+        if (["ArrowRight", "ArrowDown"].includes(event.key)) {
+          event.preventDefault();
+          event.stopPropagation();
+          movePlayerFocus("next");
+          return;
+        }
+
+        if (["ArrowLeft", "ArrowUp"].includes(event.key)) {
+          event.preventDefault();
+          event.stopPropagation();
+          movePlayerFocus("previous");
+          return;
+        }
+
+        if (["Enter", " "].includes(event.key)) {
+          const active = document.activeElement as HTMLElement | null;
+          if (active?.closest('[data-tv-player="open"]') && active.tagName !== "SELECT") {
+            event.preventDefault();
+            event.stopPropagation();
+            active.click();
+          }
         }
       }}
     >
