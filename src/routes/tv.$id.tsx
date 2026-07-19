@@ -7,7 +7,8 @@ import { ProviderSelect, useProvider } from "@/components/ProviderSelect";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useIsTvMode } from "@/hooks/useTvMode";
-import { Play, Star, Calendar, ArrowLeft, X, ExternalLink } from "lucide-react";
+import { StreamPlayer } from "@/components/StreamPlayer";
+import { Play, Star, Calendar, ArrowLeft } from "lucide-react";
 
 export const Route = createFileRoute("/tv/$id")({
   component: TvPage,
@@ -45,10 +46,6 @@ function TvPage() {
   const episodeStreamUrl = episode !== null ? getTvStreamUrl(tvId, season, episode, providerId, isTvMode) : "";
 
   function playEpisode(episodeNumber: number) {
-    if (isTvMode) {
-      window.location.assign(getTvStreamUrl(tvId, season, episodeNumber, providerId, true));
-      return;
-    }
     setEpisode(episodeNumber);
   }
 
@@ -118,6 +115,7 @@ function TvPage() {
               key={ep.id}
               onClick={() => playEpisode(ep.episode_number)}
               className="group flex flex-col md:flex-row gap-4 rounded-2xl border border-border bg-card/50 hover:bg-card p-3 text-left transition"
+              data-tv-primary={ep.episode_number === seasonData?.episodes[0]?.episode_number ? "true" : undefined}
             >
               <div className="relative w-full md:w-56 aspect-video shrink-0 rounded-xl overflow-hidden bg-secondary">
                 {ep.still_path ? (
@@ -147,41 +145,15 @@ function TvPage() {
       <Footer />
 
       {episode !== null && (
-        <div className="fixed inset-0 z-[100] bg-black/95 flex flex-col items-center justify-center p-4 gap-3">
-          <div className="w-full max-w-6xl flex items-center justify-between gap-3 flex-wrap">
-            <div className="text-sm text-muted-foreground flex items-center gap-3 flex-wrap">
-              <span>S{season} · E{episode}</span>
-              <ProviderSelect value={providerId} onChange={setProviderId} />
-            </div>
-            <div className="flex items-center gap-2">
-              <a
-                href={episodeStreamUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1.5 h-9 px-3 rounded-full bg-secondary/80 hover:bg-secondary text-xs"
-              >
-                <ExternalLink className="h-3.5 w-3.5" /> Open externally
-              </a>
-              <button
-                onClick={() => setEpisode(null)}
-                className="grid h-9 w-9 place-items-center rounded-full bg-secondary/80 hover:bg-secondary"
-                aria-label="Close"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-          <div className="w-full max-w-6xl aspect-video rounded-2xl overflow-hidden border border-border shadow-2xl bg-black">
-            <iframe
-              src={episodeStreamUrl}
-              allowFullScreen
-              allow="autoplay; encrypted-media; picture-in-picture; fullscreen; accelerometer; gyroscope"
-              referrerPolicy="no-referrer"
-              className="stream-frame h-full w-full"
-              title={`${data.name} S${season}E${episode}`}
-            />
-          </div>
-        </div>
+        <StreamPlayer
+          title={data.name}
+          meta={`S${season} · E${episode}`}
+          streamUrl={episodeStreamUrl}
+          providerId={providerId}
+          isTvMode={isTvMode}
+          onProviderChange={setProviderId}
+          onClose={() => setEpisode(null)}
+        />
       )}
     </div>
   );

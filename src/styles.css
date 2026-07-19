@@ -224,12 +224,30 @@ html.tv-mode iframe {
   will-change: auto;
 }
 
+html.tv-mode .stream-player-shell {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  transform: none !important;
+}
+
+html.tv-mode .stream-player-controls {
+  min-height: 76px;
+  padding-left: max(2.5vw, 24px);
+  padding-right: max(2.5vw, 24px);
+}
+
+html.tv-mode .stream-player-video {
+  width: 100vw;
+  height: calc(100vh - 76px);
+  overflow: hidden;
+}
+
 html.tv-mode .stream-frame {
-  position: fixed;
-  inset: 0;
-  width: 100vw !important;
-  height: 100vh !important;
-  z-index: 999;
+  position: static;
+  width: 100% !important;
+  height: 100% !important;
+  z-index: auto;
   border-radius: 0 !important;
   box-shadow: none !important;
 }

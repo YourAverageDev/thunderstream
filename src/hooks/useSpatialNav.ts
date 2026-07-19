@@ -6,10 +6,10 @@ import { useEffect } from "react";
  * elements to pick the next focus target.
  *
  * Enter / Space / DPAD_CENTER (keyCode 13) → click focused element.
- * Backspace / Escape / DPAD_BACK (keyCode 8, 27, 461) → browser back.
+ * Backspace / Escape / DPAD_BACK (keyCode 8, 27, 461) → close player or browser back.
  */
 const FOCUSABLE =
-  'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"]),iframe';
+  'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"]),iframe[tabindex="0"]';
 
 function visible(el: Element) {
   const r = (el as HTMLElement).getBoundingClientRect();
@@ -19,8 +19,12 @@ function visible(el: Element) {
   return cs.visibility !== "hidden" && cs.display !== "none";
 }
 
+function activeScope(): ParentNode {
+  return document.querySelector<HTMLElement>('[data-tv-player="open"]') ?? document;
+}
+
 function candidates(): HTMLElement[] {
-  return Array.from(document.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(visible);
+  return Array.from(activeScope().querySelectorAll<HTMLElement>(FOCUSABLE)).filter(visible);
 }
 
 function move(dir: "up" | "down" | "left" | "right") {
@@ -63,6 +67,13 @@ function move(dir: "up" | "down" | "left" | "right") {
   }
 }
 
+function closePlayerIfOpen() {
+  const close = document.querySelector<HTMLElement>('[data-tv-player="open"] [data-tv-close="true"]');
+  if (!close) return false;
+  close.click();
+  return true;
+}
+
 export function useSpatialNav(enabled: boolean) {
   useEffect(() => {
     if (!enabled) return;
@@ -80,6 +91,7 @@ export function useSpatialNav(enabled: boolean) {
         case " ": {
           const el = document.activeElement as HTMLElement | null;
           if (el && el !== document.body && !isTyping) {
+            if (el.tagName === "IFRAME") return;
             e.preventDefault();
             el.click();
           }
@@ -91,7 +103,7 @@ export function useSpatialNav(enabled: boolean) {
         case "BrowserBack":
           if (!isTyping) {
             e.preventDefault();
-            history.back();
+            if (!closePlayerIfOpen()) history.back();
           }
           break;
       }

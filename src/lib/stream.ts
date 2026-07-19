@@ -55,7 +55,9 @@ export const providers: Provider[] = [
 
 const STORAGE_KEY = "thunder_provider";
 
-const TV_FALLBACK_PROVIDER: ProviderId = "vidlink";
+const TV_SAFE_PROVIDERS: ProviderId[] = ["autoembed", "vidsrc", "vidsrccc", "vidlink", "twoembed", "superembed"];
+
+const TV_FALLBACK_PROVIDER: ProviderId = TV_SAFE_PROVIDERS[0];
 
 function isProviderId(value: string | null): value is ProviderId {
   return providers.some((provider) => provider.id === value);
@@ -87,7 +89,13 @@ export function getProvider(id: ProviderId): Provider {
 }
 
 export function getTvSafeProvider(id: ProviderId): ProviderId {
-  return id === "videasy" ? TV_FALLBACK_PROVIDER : id;
+  return TV_SAFE_PROVIDERS.includes(id) ? id : TV_FALLBACK_PROVIDER;
+}
+
+export function getNextTvProvider(id: ProviderId): ProviderId {
+  const safeId = getTvSafeProvider(id);
+  const index = TV_SAFE_PROVIDERS.indexOf(safeId);
+  return TV_SAFE_PROVIDERS[(index + 1) % TV_SAFE_PROVIDERS.length];
 }
 
 export function getMovieStreamUrl(id: string | number, providerId: ProviderId, isTvMode = false) {
