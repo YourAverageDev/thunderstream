@@ -39,12 +39,8 @@ export function StreamPlayer({
     window.addEventListener("popstate", onPopState);
 
     const focusTimer = window.setTimeout(() => {
-      if (isTvMode) {
-        frameRef.current?.focus();
-      } else {
-        primaryRef.current?.focus();
-      }
-    }, isTvMode ? 900 : 80);
+      primaryRef.current?.focus();
+    }, isTvMode ? 350 : 80);
 
     return () => {
       window.clearTimeout(focusTimer);
@@ -92,7 +88,7 @@ export function StreamPlayer({
             type="button"
             onClick={focusVideo}
             className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground"
-            aria-label="Focus video"
+            aria-label="Activate player"
             data-tv-primary="true"
           >
             ▶
@@ -157,9 +153,6 @@ export function StreamPlayer({
           title={title}
           tabIndex={0}
           data-tv-focusable="true"
-          onLoad={() => {
-            if (isTvMode) window.setTimeout(() => frameRef.current?.focus(), 250);
-          }}
         />
       </div>
     </div>
