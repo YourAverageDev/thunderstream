@@ -58,13 +58,13 @@ export function StreamPlayer({
   }
 
   function focusVideo() {
-    frameRef.current?.focus();
+    setReloadKey((key) => key + 1);
   }
 
   function nextSource() {
     onProviderChange(getNextTvProvider(providerId));
     setReloadKey((key) => key + 1);
-    window.setTimeout(() => frameRef.current?.focus(), 500);
+    window.setTimeout(() => primaryRef.current?.focus(), 200);
   }
 
   return (
@@ -88,7 +88,7 @@ export function StreamPlayer({
             type="button"
             onClick={focusVideo}
             className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground"
-            aria-label="Activate player"
+            aria-label="Restart player"
             data-tv-primary="true"
           >
             ▶
@@ -151,8 +151,8 @@ export function StreamPlayer({
           referrerPolicy="no-referrer"
           className="stream-frame h-full w-full"
           title={title}
-          tabIndex={0}
-          data-tv-focusable="true"
+          tabIndex={-1}
+          data-tv-focusable="false"
         />
       </div>
     </div>
