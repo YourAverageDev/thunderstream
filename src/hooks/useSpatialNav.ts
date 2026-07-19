@@ -9,7 +9,7 @@ import { useEffect } from "react";
  * Backspace / Escape / DPAD_BACK (keyCode 8, 27, 461) → close player or browser back.
  */
 const FOCUSABLE =
-  'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"]),iframe[tabindex="0"]';
+  'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
 
 function visible(el: Element) {
   const r = (el as HTMLElement).getBoundingClientRect();
