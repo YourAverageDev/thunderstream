@@ -25,12 +25,17 @@ export function StreamPlayer({
   const frameRef = useRef<HTMLIFrameElement | null>(null);
   const primaryRef = useRef<HTMLButtonElement | null>(null);
   const markerRef = useRef(`thunder-player-${Date.now()}`);
+  const onCloseRef = useRef(onClose);
   const [reloadKey, setReloadKey] = useState(0);
   const frameSrc = useMemo(() => streamUrl, [streamUrl, reloadKey]);
 
   useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  useEffect(() => {
     window.history.pushState({ thunderPlayer: markerRef.current }, "", window.location.href);
-    const onPopState = () => onClose();
+    const onPopState = () => onCloseRef.current();
     window.addEventListener("popstate", onPopState);
 
     const focusTimer = window.setTimeout(() => {
@@ -45,7 +50,7 @@ export function StreamPlayer({
       window.clearTimeout(focusTimer);
       window.removeEventListener("popstate", onPopState);
     };
-  }, [isTvMode, onClose]);
+  }, [isTvMode]);
 
   function closePlayer() {
     if (window.history.state?.thunderPlayer === markerRef.current) {
@@ -53,7 +58,7 @@ export function StreamPlayer({
       window.setTimeout(onClose, 120);
       return;
     }
-    onClose();
+    onCloseRef.current();
   }
 
   function focusVideo() {

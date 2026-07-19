@@ -125,7 +125,7 @@ function MoviePage() {
 
       {playing && (
         <StreamPlayer
-          title={data.title}
+          title={data.title || "Movie"}
           streamUrl={streamUrl}
           providerId={providerId}
           isTvMode={isTvMode}

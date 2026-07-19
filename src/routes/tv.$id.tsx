@@ -146,7 +146,7 @@ function TvPage() {
 
       {episode !== null && (
         <StreamPlayer
-          title={data.name}
+          title={data.name || "TV Show"}
           meta={`S${season} · E${episode}`}
           streamUrl={episodeStreamUrl}
           providerId={providerId}
