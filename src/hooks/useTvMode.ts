@@ -1,9 +1,19 @@
 import { useEffect, useState } from "react";
 
-function lockLandscape() {
+export function lockLandscape() {
   if (typeof screen === "undefined") return;
   const orientation = (screen as any).orientation;
   if (orientation?.lock) orientation.lock("landscape").catch(() => {});
+}
+
+export function unlockOrientation() {
+  if (typeof screen === "undefined") return;
+  const orientation = (screen as any).orientation;
+  if (orientation?.unlock) {
+    try {
+      orientation.unlock();
+    } catch {}
+  }
 }
 
 /**
@@ -42,23 +52,23 @@ export function useTvMode() {
 
   useEffect(() => {
     const root = document.documentElement;
-    root.classList.add("landscape-app");
+    const active = isTvDevice();
+    setTv(active);
+
+    // Never force landscape/10-foot UI on phones & tablets — only real
+    // TV/STB browsers get the forced-landscape + tv-mode treatment.
+    if (!active) {
+      root.classList.remove("tv-mode");
+      return;
+    }
+
+    root.classList.add("tv-mode");
     lockLandscape();
 
     const retryLandscapeLock = () => lockLandscape();
     window.addEventListener("click", retryLandscapeLock, { passive: true });
     window.addEventListener("keydown", retryLandscapeLock, { passive: true });
     window.addEventListener("touchstart", retryLandscapeLock, { passive: true });
-
-    const active = isTvDevice();
-    setTv(active);
-    if (active) {
-      root.classList.add("tv-mode");
-      // Lock landscape when we can (APK / supported browsers)
-      lockLandscape();
-    } else {
-      root.classList.remove("tv-mode");
-    }
 
     return () => {
       window.removeEventListener("click", retryLandscapeLock);

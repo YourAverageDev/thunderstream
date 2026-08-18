@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ExternalLink, RefreshCw, SkipForward, X } from "lucide-react";
 import { ProviderSelect } from "@/components/ProviderSelect";
 import { getNextTvProvider, type ProviderId } from "@/lib/stream";
+import { lockLandscape, unlockOrientation } from "@/hooks/useTvMode";
+import { resolveTvKey, TV_BACK_KEYS, TV_NEXT_KEYS, TV_PREV_KEYS, TV_SELECT_KEYS } from "@/lib/tvKeys";
 
 type StreamPlayerProps = {
   title: string;
@@ -32,6 +34,15 @@ export function StreamPlayer({
   useEffect(() => {
     onCloseRef.current = onClose;
   }, [onClose]);
+
+  useEffect(() => {
+    // On phones/tablets, prefer landscape while the video is open (best-effort —
+    // most mobile browsers require fullscreen for this to succeed) and restore
+    // free rotation on close. TV stays locked to landscape at the app level.
+    if (isTvMode) return;
+    lockLandscape();
+    return () => unlockOrientation();
+  }, [isTvMode]);
 
   useEffect(() => {
     window.history.pushState({ thunderPlayer: markerRef.current }, "", window.location.href);
@@ -108,28 +119,30 @@ export function StreamPlayer({
       aria-modal="true"
       aria-label={title}
       onKeyDownCapture={(event) => {
-        if (["Escape", "Backspace", "GoBack", "BrowserBack"].includes(event.key)) {
+        const key = resolveTvKey(event.nativeEvent);
+
+        if (TV_BACK_KEYS.has(key)) {
           event.preventDefault();
           event.stopPropagation();
           closePlayer();
           return;
         }
 
-        if (["ArrowRight", "ArrowDown"].includes(event.key)) {
+        if (TV_NEXT_KEYS.has(key)) {
           event.preventDefault();
           event.stopPropagation();
           movePlayerFocus("next");
           return;
         }
 
-        if (["ArrowLeft", "ArrowUp"].includes(event.key)) {
+        if (TV_PREV_KEYS.has(key)) {
           event.preventDefault();
           event.stopPropagation();
           movePlayerFocus("previous");
           return;
         }
 
-        if (["Enter", " "].includes(event.key)) {
+        if (TV_SELECT_KEYS.has(key)) {
           const active = document.activeElement as HTMLElement | null;
           if (active?.closest('[data-tv-player="open"]') && active.tagName !== "SELECT") {
             event.preventDefault();
@@ -206,7 +219,7 @@ export function StreamPlayer({
           src={frameSrc}
           allowFullScreen
           allow="autoplay; encrypted-media; picture-in-picture; fullscreen; accelerometer; gyroscope"
-          referrerPolicy="no-referrer"
+          referrerPolicy="origin"
           className="stream-frame h-full w-full"
           title={title}
           tabIndex={-1}

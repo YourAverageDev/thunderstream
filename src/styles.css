@@ -83,33 +83,6 @@
   }
 }
 
-/* Force a landscape canvas even when the host WebView/browser opens portrait. */
-html.landscape-app,
-html.landscape-app body {
-  min-width: 100%;
-  min-height: 100%;
-}
-
-@media (orientation: portrait) {
-  html.landscape-app {
-    width: 100vh;
-    height: 100vw;
-    overflow: hidden;
-  }
-
-  html.landscape-app body {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vh;
-    height: 100vw;
-    overflow-x: hidden;
-    overflow-y: auto;
-    transform: rotate(90deg) translateY(-100vh);
-    transform-origin: top left;
-  }
-}
-
 @utility scroll-row {
   scrollbar-width: none;
   &::-webkit-scrollbar { display: none; }
@@ -153,6 +126,31 @@ html.tv-mode body {
   /* 10-foot UI: scale everything up */
   font-size: 20px;
   cursor: none;
+  min-width: 100%;
+  min-height: 100%;
+}
+
+/* Force a landscape canvas even when the host WebView/browser opens portrait.
+   Scoped to tv-mode ONLY — never applied on phones/tablets, which must keep
+   their natural orientation. */
+@media (orientation: portrait) {
+  html.tv-mode {
+    width: 100vh;
+    height: 100vw;
+    overflow: hidden;
+  }
+
+  html.tv-mode body {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vh;
+    height: 100vw;
+    overflow-x: hidden;
+    overflow-y: auto;
+    transform: rotate(90deg) translateY(-100vh);
+    transform-origin: top left;
+  }
 }
 
 html.tv-mode * {
