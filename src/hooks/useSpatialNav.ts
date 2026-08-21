@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { resolveTvKey } from "@/lib/tvKeys";
 
 /**
  * Minimal D-pad / arrow-key spatial navigation for TV remotes
@@ -99,8 +100,9 @@ export function useSpatialNav(enabled: boolean) {
       // Don't hijack typing
       const tag = (e.target as HTMLElement)?.tagName;
       const isTyping = tag === "INPUT" || tag === "TEXTAREA" || (e.target as HTMLElement)?.isContentEditable;
+      const key = resolveTvKey(e);
 
-      switch (e.key) {
+      switch (key) {
         case "ArrowRight": if (!isTyping) { e.preventDefault(); move("right"); } break;
         case "ArrowLeft":  if (!isTyping) { e.preventDefault(); move("left"); }  break;
         case "ArrowDown":  if (!isTyping) { e.preventDefault(); move("down"); }  break;
