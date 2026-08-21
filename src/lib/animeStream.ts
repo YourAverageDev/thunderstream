@@ -2,6 +2,8 @@
 // Separate from lib/stream.ts's movie/TV providers (TMDB-ID based) since
 // anime embeds need a different id scheme and most movie/TV embed sites
 // don't serve anime at all.
+import { getAutoplayPreference } from "@/lib/prefs";
+
 export type AnimeProviderId = "vidsrccc" | "vidnest" | "megaplay" | "vidplus";
 export type AnimeAudio = "sub" | "dub";
 
@@ -46,6 +48,7 @@ function isAnimeAudio(value: string | null): value is AnimeAudio {
 }
 
 function withPlaybackParams(url: string): string {
+  if (!getAutoplayPreference()) return url;
   try {
     const next = new URL(url);
     next.searchParams.set("autoplay", "1");

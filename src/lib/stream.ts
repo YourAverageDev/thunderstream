@@ -1,4 +1,6 @@
 // Streaming embed providers for movies & TV
+import { getAutoplayPreference } from "@/lib/prefs";
+
 export type ProviderId = "vidlink" | "autoembed" | "vidsrc" | "vidsrccc" | "twoembed" | "superembed" | "videasy";
 
 export type Provider = {
@@ -64,6 +66,7 @@ function isProviderId(value: string | null): value is ProviderId {
 }
 
 function withPlaybackParams(url: string): string {
+  if (!getAutoplayPreference()) return url;
   try {
     const next = new URL(url);
     next.searchParams.set("autoplay", "1");
