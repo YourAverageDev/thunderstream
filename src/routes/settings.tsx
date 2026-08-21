@@ -2,7 +2,11 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ExternalLink } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { usernameFromEmail, updateAniListUsername, validateAniListUsername } from "@/lib/auth";
+import { usernameFromEmail, updateAniListUsername, validateAniListUsername, signOut } from "@/lib/auth";
+import { getTvModePreference, setTvModePreference, type TvModePreference } from "@/hooks/useTvMode";
+import { getAutoplayPreference, setAutoplayPreference, clearAllPreferences } from "@/lib/prefs";
+import { ProviderSelect, useProvider } from "@/components/ProviderSelect";
+import { AnimeProviderSelect, useAnimeProviderPrefs } from "@/components/AnimeProviderSelect";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 
@@ -23,6 +27,16 @@ function SettingsPage() {
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<"idle" | "saving" | "saved">("idle");
 
+  const [provider, setProvider] = useProvider();
+  const { provider: animeProvider, setProvider: setAnimeProvider, audio, setAudio } = useAnimeProviderPrefs();
+  const [tvMode, setTvMode] = useState<TvModePreference>("auto");
+  const [autoplay, setAutoplay] = useState(true);
+
+  useEffect(() => {
+    setTvMode(getTvModePreference());
+    setAutoplay(getAutoplayPreference());
+  }, []);
+
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth" });
   }, [loading, user, navigate]);
@@ -30,6 +44,27 @@ function SettingsPage() {
   useEffect(() => {
     setAniListInput(savedAniList);
   }, [savedAniList]);
+
+  function onTvModeChange(next: TvModePreference) {
+    setTvMode(next);
+    setTvModePreference(next);
+    window.location.reload();
+  }
+
+  function onAutoplayChange(enabled: boolean) {
+    setAutoplay(enabled);
+    setAutoplayPreference(enabled);
+  }
+
+  function onResetPreferences() {
+    clearAllPreferences();
+    window.location.reload();
+  }
+
+  async function onSignOut() {
+    await signOut();
+    navigate({ to: "/" });
+  }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -64,10 +99,11 @@ function SettingsPage() {
   return (
     <div className="min-h-screen">
       <Navbar />
-      <main className="pt-28 pb-16 mx-auto max-w-lg px-4">
-        <h1 className="font-display text-3xl tracking-wide mb-8">Account Settings</h1>
+      <main className="pt-28 pb-16 mx-auto max-w-2xl px-4 space-y-8">
+        <h1 className="font-display text-3xl tracking-wide">Settings</h1>
 
-        <div className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur-xl p-6 space-y-6">
+        <section className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur-xl p-6 space-y-6">
+          <h2 className="text-sm font-semibold text-foreground">Account</h2>
           <div>
             <p className="text-xs text-muted-foreground mb-1">Signed in as</p>
             <p className="text-sm font-medium">{username}</p>
@@ -109,9 +145,84 @@ function SettingsPage() {
               {status === "saving" ? "Saving…" : status === "saved" ? "Saved ✓" : "Save"}
             </button>
           </form>
-        </div>
 
-        <Link to="/" className="mt-6 inline-block text-sm text-muted-foreground hover:text-foreground">
+          <button
+            onClick={onSignOut}
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            Sign out
+          </button>
+        </section>
+
+        <section className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur-xl p-6 space-y-5">
+          <h2 className="text-sm font-semibold text-foreground">Playback</h2>
+
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-medium">Autoplay</p>
+              <p className="text-xs text-muted-foreground">Start playing as soon as a movie, show, or episode opens.</p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={autoplay}
+              onClick={() => onAutoplayChange(!autoplay)}
+              className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${autoplay ? "bg-primary" : "bg-secondary"}`}
+            >
+              <span
+                className={`absolute top-1 h-5 w-5 rounded-full bg-background transition-transform ${autoplay ? "translate-x-6" : "translate-x-1"}`}
+              />
+            </button>
+          </div>
+
+          <div>
+            <p className="text-sm font-medium mb-1.5">Default movie & TV source</p>
+            <ProviderSelect value={provider} onChange={setProvider} />
+          </div>
+
+          <div>
+            <p className="text-sm font-medium mb-1.5">Default anime source</p>
+            <AnimeProviderSelect provider={animeProvider} audio={audio} onProviderChange={setAnimeProvider} onAudioChange={setAudio} />
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur-xl p-6 space-y-3">
+          <h2 className="text-sm font-semibold text-foreground">TV / Fire TV</h2>
+          <p className="text-xs text-muted-foreground">
+            Controls the 10-foot, D-pad-friendly UI. Leave on Auto unless you're running this as a
+            wrapped APK on a Fire TV Stick or Android TV device and it isn't detected correctly.
+          </p>
+          <div className="flex gap-2">
+            {(["auto", "on", "off"] as const).map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => onTvModeChange(mode)}
+                className={`flex-1 h-10 rounded-lg text-sm font-medium capitalize transition ${
+                  tvMode === mode ? "bg-primary text-primary-foreground" : "bg-secondary/60 text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {mode}
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground">Reloads the page to apply.</p>
+        </section>
+
+        <section className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur-xl p-6 space-y-3">
+          <h2 className="text-sm font-semibold text-foreground">Reset</h2>
+          <p className="text-xs text-muted-foreground">
+            Clears saved source, autoplay, and TV mode preferences on this device. Your account isn't affected.
+          </p>
+          <button
+            onClick={onResetPreferences}
+            className="h-10 px-4 rounded-lg border border-border/60 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/40 transition"
+          >
+            Reset preferences
+          </button>
+        </section>
+
+        <Link to="/" className="inline-block text-sm text-muted-foreground hover:text-foreground">
           ← Back home
         </Link>
       </main>

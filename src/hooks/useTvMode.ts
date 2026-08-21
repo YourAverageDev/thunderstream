@@ -1,5 +1,18 @@
 import { useEffect, useState } from "react";
 
+const TV_MODE_KEY = "thunder_tv_mode";
+export type TvModePreference = "auto" | "on" | "off";
+
+export function getTvModePreference(): TvModePreference {
+  if (typeof window === "undefined") return "auto";
+  const saved = window.localStorage.getItem(TV_MODE_KEY);
+  return saved === "on" || saved === "off" ? saved : "auto";
+}
+
+export function setTvModePreference(pref: TvModePreference) {
+  if (typeof window !== "undefined") window.localStorage.setItem(TV_MODE_KEY, pref);
+}
+
 export function lockLandscape() {
   // Some WebView-wrapper runtimes (APK builders used to ship this as a TV
   // app) inject a broken `screen.orientation.lock` shim that throws
@@ -31,6 +44,9 @@ export function unlockOrientation() {
  *    Tizen, Web0S / WebOS, HbbTV, NetCast, DTV
  *  - Coarse pointer + no touch + large viewport (typical for STB/TV browser)
  *  - `?tv=1` query param (manual override for testing / APK)
+ *  - a persisted "Force TV Mode" preference set from /settings — useful when
+ *    wrapping the site as an APK, where the URL is fixed and a query param
+ *    override isn't practical to set.
  */
 export function isTvDevice(): boolean {
   if (typeof window === "undefined") return false;
@@ -39,6 +55,10 @@ export function isTvDevice(): boolean {
     if (url.searchParams.get("tv") === "0") return false;
     if (url.searchParams.get("tv") === "1") return true;
   } catch {}
+
+  const pref = getTvModePreference();
+  if (pref === "on") return true;
+  if (pref === "off") return false;
 
   const ua = navigator.userAgent || "";
   const tvUa = /AFT|Fire TV|SMART-?TV|SmartTV|GoogleTV|Android TV|BRAVIA|Tizen|Web0S|WebOS|NetCast|HbbTV|DTV|Roku|AppleTV|CrKey/i;
