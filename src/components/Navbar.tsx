@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Zap, Search, LogOut, User as UserIcon, Menu, X } from "lucide-react";
+import { Zap, Search, LogOut, Settings, User as UserIcon, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { signOut } from "@/lib/auth";
@@ -68,6 +68,13 @@ export function Navbar() {
                   <UserIcon className="h-4 w-4" />
                   {username}
                 </span>
+                <Link
+                  to="/settings"
+                  title="Account settings"
+                  className="grid h-9 w-9 place-items-center rounded-full bg-secondary/60 border border-border/50 hover:bg-secondary"
+                >
+                  <Settings className="h-4 w-4" />
+                </Link>
                 <button
                   onClick={handleSignOut}
                   title="Sign out"

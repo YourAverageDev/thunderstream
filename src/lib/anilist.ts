@@ -12,6 +12,23 @@ export type AniListMedia = {
   genres: string[];
 };
 
+export type AniListRelation = {
+  relationType: string;
+  node: {
+    id: number;
+    type: "ANIME" | "MANGA";
+    format: string | null;
+    title: { romaji: string; english: string | null };
+    coverImage: { large: string };
+  };
+};
+
+export type AniListMediaDetail = AniListMedia & {
+  status: "FINISHED" | "RELEASING" | "NOT_YET_RELEASED" | "CANCELLED" | "HIATUS" | null;
+  nextAiringEpisode: { episode: number } | null;
+  relations: { edges: AniListRelation[] };
+};
+
 type MediaSeason = "WINTER" | "SPRING" | "SUMMER" | "FALL";
 
 const ENDPOINT = "/api/anilist";
@@ -85,8 +102,26 @@ export const anilist = {
     ).then((d) => d.Page.media),
 
   details: (id: number | string) =>
-    gql<{ Media: AniListMedia }>(
-      `query ($id: Int) { Media(id: $id, type: ANIME) { ${MEDIA_FIELDS} } }`,
+    gql<{ Media: AniListMediaDetail }>(
+      `query ($id: Int) {
+        Media(id: $id, type: ANIME) {
+          ${MEDIA_FIELDS}
+          status
+          nextAiringEpisode { episode }
+          relations {
+            edges {
+              relationType(version: 2)
+              node {
+                id
+                type
+                format
+                title { romaji english }
+                coverImage { large }
+              }
+            }
+          }
+        }
+      }`,
       { id: Number(id) },
     ).then((d) => d.Media),
 };

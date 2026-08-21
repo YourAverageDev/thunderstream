@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { tmdb, IMG } from "@/lib/tmdb";
-import { getTvSafeProvider, getTvStreamUrl, saveProvider } from "@/lib/stream";
+import { getNextTvProvider, getTvSafeProvider, getTvStreamUrl, saveProvider } from "@/lib/stream";
 import { ProviderSelect, useProvider } from "@/components/ProviderSelect";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -149,9 +149,9 @@ function TvPage() {
           title={data.name || "TV Show"}
           meta={`S${season} · E${episode}`}
           streamUrl={episodeStreamUrl}
-          providerId={providerId}
           isTvMode={isTvMode}
-          onProviderChange={setProviderId}
+          providerControl={<ProviderSelect value={providerId} onChange={setProviderId} />}
+          onNextSource={() => setProviderId(getNextTvProvider(providerId))}
           onClose={() => setEpisode(null)}
         />
       )}

@@ -38,3 +38,15 @@ export async function signIn(username: string, password: string) {
 export async function signOut() {
   return supabase.auth.signOut();
 }
+
+export function validateAniListUsername(username: string) {
+  const u = username.trim();
+  if (!u) return null; // empty clears the connection
+  if (!/^[A-Za-z0-9_-]{2,20}$/.test(u)) return "Enter a valid AniList username";
+  return null;
+}
+
+export async function updateAniListUsername(username: string) {
+  const clean = username.trim();
+  return supabase.auth.updateUser({ data: { anilist_username: clean || null } });
+}
