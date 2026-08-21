@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { tmdb, IMG } from "@/lib/tmdb";
-import { getMovieStreamUrl, getTvSafeProvider, saveProvider } from "@/lib/stream";
+import { getMovieStreamUrl, getNextTvProvider, getTvSafeProvider, saveProvider } from "@/lib/stream";
 import { ProviderSelect, useProvider } from "@/components/ProviderSelect";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -127,9 +127,9 @@ function MoviePage() {
         <StreamPlayer
           title={data.title || "Movie"}
           streamUrl={streamUrl}
-          providerId={providerId}
           isTvMode={isTvMode}
-          onProviderChange={setProviderId}
+          providerControl={<ProviderSelect value={providerId} onChange={setProviderId} />}
+          onNextSource={() => setProviderId(getNextTvProvider(providerId))}
           onClose={() => setPlaying(false)}
         />
       )}

@@ -1,27 +1,31 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { ExternalLink, RefreshCw, SkipForward, X } from "lucide-react";
-import { ProviderSelect } from "@/components/ProviderSelect";
-import { getNextTvProvider, type ProviderId } from "@/lib/stream";
 import { lockLandscape, unlockOrientation } from "@/hooks/useTvMode";
 import { resolveTvKey, TV_BACK_KEYS, TV_NEXT_KEYS, TV_PREV_KEYS, TV_SELECT_KEYS } from "@/lib/tvKeys";
 
 type StreamPlayerProps = {
   title: string;
   streamUrl: string;
-  providerId: ProviderId;
   isTvMode: boolean;
   meta?: string;
-  onProviderChange: (id: ProviderId) => void;
+  // Caller-owned provider picker UI (movie/TV's <ProviderSelect> or anime's
+  // <AnimeProviderSelect> — StreamPlayer doesn't know which provider system
+  // is in play, it just renders whatever control the page hands it).
+  providerControl?: ReactNode;
+  // Caller advances to the next source and returns the new stream URL isn't
+  // needed here — it just needs to flip its own provider state; StreamPlayer
+  // handles the reload/refocus that follows. Omit to hide the button.
+  onNextSource?: () => void;
   onClose: () => void;
 };
 
 export function StreamPlayer({
   title,
   streamUrl,
-  providerId,
   isTvMode,
   meta,
-  onProviderChange,
+  providerControl,
+  onNextSource,
   onClose,
 }: StreamPlayerProps) {
   const frameRef = useRef<HTMLIFrameElement | null>(null);
@@ -106,7 +110,7 @@ export function StreamPlayer({
   }
 
   function nextSource() {
-    onProviderChange(getNextTvProvider(providerId));
+    onNextSource?.();
     setReloadKey((key) => key + 1);
     window.setTimeout(() => primaryRef.current?.focus(), 200);
   }
@@ -171,8 +175,8 @@ export function StreamPlayer({
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
-          <ProviderSelect value={providerId} onChange={onProviderChange} />
-          {isTvMode && (
+          {providerControl}
+          {isTvMode && onNextSource && (
             <button
               type="button"
               onClick={nextSource}
