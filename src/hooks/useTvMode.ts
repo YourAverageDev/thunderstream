@@ -1,9 +1,15 @@
 import { useEffect, useState } from "react";
 
 export function lockLandscape() {
-  if (typeof screen === "undefined") return;
-  const orientation = (screen as any).orientation;
-  if (orientation?.lock) orientation.lock("landscape").catch(() => {});
+  // Some WebView-wrapper runtimes (APK builders used to ship this as a TV
+  // app) inject a broken `screen.orientation.lock` shim that throws
+  // synchronously instead of rejecting a promise — wrap the whole call so
+  // that can never crash the app.
+  try {
+    if (typeof screen === "undefined") return;
+    const orientation = (screen as any).orientation;
+    if (orientation?.lock) orientation.lock("landscape").catch(() => {});
+  } catch {}
 }
 
 export function unlockOrientation() {
@@ -65,15 +71,26 @@ export function useTvMode() {
     root.classList.add("tv-mode");
     lockLandscape();
 
-    const retryLandscapeLock = () => lockLandscape();
-    window.addEventListener("click", retryLandscapeLock, { passive: true });
-    window.addEventListener("keydown", retryLandscapeLock, { passive: true });
-    window.addEventListener("touchstart", retryLandscapeLock, { passive: true });
+    // Orientation lock can need a user gesture to succeed on some browsers.
+    // Retry once on the first interaction, then stop — do NOT re-attempt on
+    // every keypress/click. On weak Fire TV Stick hardware, calling this on
+    // every single D-pad press during navigation is wasted work that shows
+    // up as sluggishness. Real device orientation should come from the TV's
+    // own orientation-lock app; this is just a best-effort nudge.
+    const retryLandscapeLockOnce = () => {
+      lockLandscape();
+      window.removeEventListener("click", retryLandscapeLockOnce);
+      window.removeEventListener("keydown", retryLandscapeLockOnce);
+      window.removeEventListener("touchstart", retryLandscapeLockOnce);
+    };
+    window.addEventListener("click", retryLandscapeLockOnce, { passive: true });
+    window.addEventListener("keydown", retryLandscapeLockOnce, { passive: true });
+    window.addEventListener("touchstart", retryLandscapeLockOnce, { passive: true });
 
     return () => {
-      window.removeEventListener("click", retryLandscapeLock);
-      window.removeEventListener("keydown", retryLandscapeLock);
-      window.removeEventListener("touchstart", retryLandscapeLock);
+      window.removeEventListener("click", retryLandscapeLockOnce);
+      window.removeEventListener("keydown", retryLandscapeLockOnce);
+      window.removeEventListener("touchstart", retryLandscapeLockOnce);
     };
   }, []);
 
