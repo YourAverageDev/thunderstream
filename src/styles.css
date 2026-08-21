@@ -130,28 +130,15 @@ html.tv-mode body {
   min-height: 100%;
 }
 
-/* Force a landscape canvas even when the host WebView/browser opens portrait.
-   Scoped to tv-mode ONLY — never applied on phones/tablets, which must keep
-   their natural orientation. */
-@media (orientation: portrait) {
-  html.tv-mode {
-    width: 100vh;
-    height: 100vw;
-    overflow: hidden;
-  }
-
-  html.tv-mode body {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vh;
-    height: 100vw;
-    overflow-x: hidden;
-    overflow-y: auto;
-    transform: rotate(90deg) translateY(-100vh);
-    transform-origin: top left;
-  }
-}
+/* NOTE: we intentionally do NOT force-rotate the page with a CSS transform
+   when tv-mode reports portrait. A `transform` on <body> (an ancestor of the
+   player iframe) desyncs Fire TV's hardware video-overlay surface from the
+   page's layout — the exact "audio/subtitles play but video is a black/blank
+   screen" bug. It was also a real perf hit (a rotated, GPU-composited
+   full-page layer) that showed up as startup jank/crashes on Fire TV Stick's
+   weak hardware. Real devices should be orientation-locked at the OS/WebView
+   level (e.g. a "Set Orientation"-style Fire TV app set to Landscape) —
+   see the non-transform rotate *hint* further down for the fallback case. */
 
 html.tv-mode * {
   /* Kill hover-only scale/translate effects that never trigger on a remote */
