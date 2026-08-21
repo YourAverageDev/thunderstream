@@ -18,6 +18,7 @@ import { Route as AnimeIndexRouteImport } from './routes/anime.index'
 import { Route as TvIdRouteImport } from './routes/tv.$id'
 import { Route as MovieIdRouteImport } from './routes/movie.$id'
 import { Route as ApiOmdbRouteImport } from './routes/api/omdb'
+import { Route as ApiAnilistRouteImport } from './routes/api/anilist'
 import { Route as AnimeIdRouteImport } from './routes/anime.$id'
 import { Route as ApiTvmazeSplatRouteImport } from './routes/api/tvmaze.$'
 import { Route as ApiTmdbSplatRouteImport } from './routes/api/tmdb.$'
@@ -68,6 +69,11 @@ const ApiOmdbRoute = ApiOmdbRouteImport.update({
   path: '/api/omdb',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAnilistRoute = ApiAnilistRouteImport.update({
+  id: '/api/anilist',
+  path: '/api/anilist',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AnimeIdRoute = AnimeIdRouteImport.update({
   id: '/anime/$id',
   path: '/anime/$id',
@@ -96,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/search': typeof SearchRoute
   '/anime/$id': typeof AnimeIdRoute
   '/api/omdb': typeof ApiOmdbRoute
+  '/api/anilist': typeof ApiAnilistRoute
   '/movie/$id': typeof MovieIdRoute
   '/tv/$id': typeof TvIdRoute
   '/anime/': typeof AnimeIndexRoute
@@ -111,6 +118,7 @@ export interface FileRoutesByTo {
   '/search': typeof SearchRoute
   '/anime/$id': typeof AnimeIdRoute
   '/api/omdb': typeof ApiOmdbRoute
+  '/api/anilist': typeof ApiAnilistRoute
   '/movie/$id': typeof MovieIdRoute
   '/tv/$id': typeof TvIdRoute
   '/anime': typeof AnimeIndexRoute
@@ -127,6 +135,7 @@ export interface FileRoutesById {
   '/search': typeof SearchRoute
   '/anime/$id': typeof AnimeIdRoute
   '/api/omdb': typeof ApiOmdbRoute
+  '/api/anilist': typeof ApiAnilistRoute
   '/movie/$id': typeof MovieIdRoute
   '/tv/$id': typeof TvIdRoute
   '/anime/': typeof AnimeIndexRoute
@@ -144,6 +153,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/anime/$id'
     | '/api/omdb'
+    | '/api/anilist'
     | '/movie/$id'
     | '/tv/$id'
     | '/anime/'
@@ -159,6 +169,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/anime/$id'
     | '/api/omdb'
+    | '/api/anilist'
     | '/movie/$id'
     | '/tv/$id'
     | '/anime'
@@ -174,6 +185,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/anime/$id'
     | '/api/omdb'
+    | '/api/anilist'
     | '/movie/$id'
     | '/tv/$id'
     | '/anime/'
@@ -190,6 +202,7 @@ export interface RootRouteChildren {
   SearchRoute: typeof SearchRoute
   AnimeIdRoute: typeof AnimeIdRoute
   ApiOmdbRoute: typeof ApiOmdbRoute
+  ApiAnilistRoute: typeof ApiAnilistRoute
   MovieIdRoute: typeof MovieIdRoute
   TvIdRoute: typeof TvIdRoute
   AnimeIndexRoute: typeof AnimeIndexRoute
@@ -264,6 +277,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiOmdbRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/anilist': {
+      id: '/api/anilist'
+      path: '/api/anilist'
+      fullPath: '/api/anilist'
+      preLoaderRoute: typeof ApiAnilistRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/anime/$id': {
       id: '/anime/$id'
       path: '/anime/$id'
@@ -302,6 +322,7 @@ const rootRouteChildren: RootRouteChildren = {
   SearchRoute: SearchRoute,
   AnimeIdRoute: AnimeIdRoute,
   ApiOmdbRoute: ApiOmdbRoute,
+  ApiAnilistRoute: ApiAnilistRoute,
   MovieIdRoute: MovieIdRoute,
   TvIdRoute: TvIdRoute,
   AnimeIndexRoute: AnimeIndexRoute,

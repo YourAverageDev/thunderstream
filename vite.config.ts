@@ -12,8 +12,10 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
-  // Outside a Lovable build (e.g. when deploying from GitHub to Netlify), Nitro
-  // targets Netlify Functions. Inside Lovable, this is ignored and Cloudflare
-  // is forced. Netlify env auto-detection also works if this is removed.
-  nitro: { preset: "netlify" },
+  // Outside a Lovable build (e.g. when deploying from GitHub to Netlify or
+  // Vercel), Nitro needs an explicit preset for its function output format.
+  // Inside Lovable, this is ignored and Cloudflare is forced.
+  // Vercel sets VERCEL=1 during its build — detect it so `vercel deploy`
+  // doesn't get Netlify's function format. Defaults to Netlify otherwise.
+  nitro: { preset: process.env.VERCEL ? "vercel" : "netlify" },
 });
