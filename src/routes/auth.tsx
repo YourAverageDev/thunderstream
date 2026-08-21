@@ -34,13 +34,18 @@ function AuthPage() {
     if (uErr) return setError(uErr);
     if (password.length < 6) return setError("Password must be at least 6 characters");
     setLoading(true);
-    const { error } = mode === "login" ? await signIn(username, password) : await signUp(username, password);
-    setLoading(false);
-    if (error) {
-      setError(error.message);
-      return;
+    try {
+      const { error } = mode === "login" ? await signIn(username, password) : await signUp(username, password);
+      if (error) {
+        setError(error.message);
+        return;
+      }
+      navigate({ to: "/" });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
     }
-    navigate({ to: "/" });
   }
 
   return (
