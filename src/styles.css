@@ -225,6 +225,18 @@ html.tv-mode .stream-player-shell {
   transform: none !important;
 }
 
+/* Show the cursor again while a video is open. tv-mode hides it site-wide
+   on the assumption of D-pad-only input, but the embedded player is a
+   cross-origin iframe our own JS cannot click or control on the user's
+   behalf — a real pointer device (many Fire TV remotes, or a paired
+   mouse) is one of the only ways to interact with whatever the third-party
+   player itself requires (a "tap to play" overlay, its own controls). If
+   there's no pointer device this is simply invisible and harmless. */
+html.tv-mode .stream-player-shell,
+html.tv-mode .stream-player-shell * {
+  cursor: auto;
+}
+
 html.tv-mode .stream-player-controls {
   min-height: 76px;
   padding-left: max(2.5vw, 24px);
