@@ -41,7 +41,14 @@ function move(dir: "up" | "down" | "left" | "right") {
   const items = candidates();
   if (!items.length) return;
   if (!current || current === document.body) {
-    preferredCandidate(items)?.focus();
+    // Focus can end up orphaned on <body> (e.g. after a modal that held
+    // focus unmounts). Scroll the target into view too, not just focus it —
+    // otherwise the page silently jumps focus back to the top candidate
+    // with no visible movement, which looks exactly like scrolling is
+    // broken when the user is actually still scrolled further down.
+    const target = preferredCandidate(items);
+    target?.focus();
+    target?.scrollIntoView({ behavior: "auto", block: "nearest", inline: "nearest" });
     return;
   }
 
@@ -82,7 +89,19 @@ function move(dir: "up" | "down" | "left" | "right") {
 
   if (best) {
     best.focus();
-    best.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
+    // "auto" (effectively instant, absent a global smooth-scroll CSS override)
+    // instead of "smooth" — repeated smooth-scroll animation on every single
+    // D-pad press feels sluggish; TV navigation should snap immediately.
+    best.scrollIntoView({ behavior: "auto", block: "nearest", inline: "nearest" });
+    return;
+  }
+
+  // No focusable candidate that way — don't just do nothing. Sparse regions
+  // (a paragraph of text, hero imagery, gaps between sections) have no
+  // focusable element to land on, which otherwise traps the D-pad with no
+  // way to keep scrolling through them. Fall back to scrolling the page.
+  if (dir === "down" || dir === "up") {
+    window.scrollBy({ top: dir === "down" ? 240 : -240, behavior: "auto" });
   }
 }
 
@@ -97,20 +116,26 @@ export function useSpatialNav(enabled: boolean) {
   useEffect(() => {
     if (!enabled) return;
     const onKey = (e: KeyboardEvent) => {
-      // Don't hijack typing
+      // Don't hijack typing, and don't hijack <select> — it needs its own
+      // native key handling (arrows to change/cycle value, Enter/Space to
+      // open the dropdown). Intercepting those here with preventDefault()
+      // + el.click() breaks every provider/source dropdown on a remote:
+      // .click() doesn't reliably open a native <select> popup, and
+      // preventDefault() blocks the browser's own default handling that
+      // otherwise would have.
       const tag = (e.target as HTMLElement)?.tagName;
-      const isTyping = tag === "INPUT" || tag === "TEXTAREA" || (e.target as HTMLElement)?.isContentEditable;
+      const isFormControl = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || (e.target as HTMLElement)?.isContentEditable;
       const key = resolveTvKey(e);
 
       switch (key) {
-        case "ArrowRight": if (!isTyping) { e.preventDefault(); move("right"); } break;
-        case "ArrowLeft":  if (!isTyping) { e.preventDefault(); move("left"); }  break;
-        case "ArrowDown":  if (!isTyping) { e.preventDefault(); move("down"); }  break;
-        case "ArrowUp":    if (!isTyping) { e.preventDefault(); move("up"); }    break;
+        case "ArrowRight": if (!isFormControl) { e.preventDefault(); move("right"); } break;
+        case "ArrowLeft":  if (!isFormControl) { e.preventDefault(); move("left"); }  break;
+        case "ArrowDown":  if (!isFormControl) { e.preventDefault(); move("down"); }  break;
+        case "ArrowUp":    if (!isFormControl) { e.preventDefault(); move("up"); }    break;
         case "Enter":
         case " ": {
           const el = document.activeElement as HTMLElement | null;
-          if (el && el !== document.body && !isTyping) {
+          if (el && el !== document.body && !isFormControl) {
             if (el.tagName === "IFRAME") return;
             e.preventDefault();
             el.click();
@@ -121,7 +146,7 @@ export function useSpatialNav(enabled: boolean) {
         case "Escape":
         case "GoBack":
         case "BrowserBack":
-          if (!isTyping) {
+          if (!isFormControl) {
             e.preventDefault();
             if (!closePlayerIfOpen()) history.back();
           }
