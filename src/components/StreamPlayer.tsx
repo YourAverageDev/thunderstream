@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { ExternalLink, RefreshCw, SkipForward, X } from "lucide-react";
+import { ExternalLink, Maximize2, Minimize2, RefreshCw, SkipForward, X } from "lucide-react";
 import { lockLandscape, unlockOrientation } from "@/hooks/useTvMode";
 import { resolveTvKey, TV_BACK_KEYS, TV_NEXT_KEYS, TV_PREV_KEYS, TV_SELECT_KEYS } from "@/lib/tvKeys";
 
@@ -34,6 +34,9 @@ export function StreamPlayer({
   const onCloseRef = useRef(onClose);
   const [reloadKey, setReloadKey] = useState(0);
   const frameSrc = useMemo(() => streamUrl, [streamUrl, reloadKey]);
+  // "Player only" mode: hides the whole controls bar so nothing but the
+  // video shows. Exited via the floating button or Back/Escape.
+  const [focusMode, setFocusMode] = useState(false);
 
   useEffect(() => {
     onCloseRef.current = onClose;
@@ -147,6 +150,10 @@ export function StreamPlayer({
         if (TV_BACK_KEYS.has(key)) {
           event.preventDefault();
           event.stopPropagation();
+          if (focusMode) {
+            setFocusMode(false);
+            return;
+          }
           closePlayer();
           return;
         }
@@ -181,65 +188,86 @@ export function StreamPlayer({
         }
       }}
     >
-      <div className="stream-player-controls flex min-h-16 w-full items-center justify-between gap-3 border-b border-border bg-card/95 px-4 py-3 md:px-6">
-        <div className="min-w-0 flex items-center gap-3">
-          <button
-            ref={primaryRef}
-            type="button"
-            onClick={focusVideo}
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground"
-            aria-label="Restart player"
-            data-tv-primary="true"
-          >
-            ▶
-          </button>
-          <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-foreground">{title}</p>
-            {meta && <p className="text-xs text-muted-foreground">{meta}</p>}
+      {focusMode ? (
+        <button
+          type="button"
+          autoFocus
+          onClick={() => setFocusMode(false)}
+          className="absolute top-3 right-3 z-10 inline-grid h-9 w-9 place-items-center rounded-full bg-black/50 text-white backdrop-blur-sm hover:bg-black/70"
+          aria-label="Exit player-only mode"
+          data-tv-primary="true"
+        >
+          <Minimize2 className="h-4 w-4" />
+        </button>
+      ) : (
+        <div className="stream-player-controls flex min-h-16 w-full items-center justify-between gap-3 border-b border-border bg-card/95 px-4 py-3 md:px-6">
+          <div className="min-w-0 flex items-center gap-3">
+            <button
+              ref={primaryRef}
+              type="button"
+              onClick={focusVideo}
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground"
+              aria-label="Restart player"
+              data-tv-primary="true"
+            >
+              ▶
+            </button>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-foreground">{title}</p>
+              {meta && <p className="text-xs text-muted-foreground">{meta}</p>}
+            </div>
           </div>
-        </div>
 
-        <div className="flex shrink-0 items-center gap-2">
-          {providerControl}
-          {isTvMode && onNextSource && (
+          <div className="flex shrink-0 items-center gap-2">
+            {providerControl}
+            {isTvMode && onNextSource && (
+              <button
+                type="button"
+                onClick={nextSource}
+                className="inline-grid h-10 w-10 place-items-center rounded-full bg-secondary/80 hover:bg-secondary"
+                aria-label="Next source"
+              >
+                <SkipForward className="h-4 w-4" />
+              </button>
+            )}
             <button
               type="button"
-              onClick={nextSource}
+              onClick={() => setReloadKey((key) => key + 1)}
               className="inline-grid h-10 w-10 place-items-center rounded-full bg-secondary/80 hover:bg-secondary"
-              aria-label="Next source"
+              aria-label="Reload player"
             >
-              <SkipForward className="h-4 w-4" />
+              <RefreshCw className="h-4 w-4" />
             </button>
-          )}
-          <button
-            type="button"
-            onClick={() => setReloadKey((key) => key + 1)}
-            className="inline-grid h-10 w-10 place-items-center rounded-full bg-secondary/80 hover:bg-secondary"
-            aria-label="Reload player"
-          >
-            <RefreshCw className="h-4 w-4" />
-          </button>
-          {!isTvMode && (
-            <a
-              href={streamUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex h-10 items-center gap-1.5 rounded-full bg-secondary/80 px-3 text-xs hover:bg-secondary"
+            <button
+              type="button"
+              onClick={() => setFocusMode(true)}
+              className="inline-grid h-10 w-10 place-items-center rounded-full bg-secondary/80 hover:bg-secondary"
+              aria-label="Player-only mode"
             >
-              <ExternalLink className="h-3.5 w-3.5" /> Open externally
-            </a>
-          )}
-          <button
-            type="button"
-            onClick={closePlayer}
-            className="inline-grid h-10 w-10 place-items-center rounded-full bg-secondary/80 hover:bg-secondary"
-            aria-label="Close player"
-            data-tv-close="true"
-          >
-            <X className="h-4 w-4" />
-          </button>
+              <Maximize2 className="h-4 w-4" />
+            </button>
+            {!isTvMode && (
+              <a
+                href={streamUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex h-10 items-center gap-1.5 rounded-full bg-secondary/80 px-3 text-xs hover:bg-secondary"
+              >
+                <ExternalLink className="h-3.5 w-3.5" /> Open externally
+              </a>
+            )}
+            <button
+              type="button"
+              onClick={closePlayer}
+              className="inline-grid h-10 w-10 place-items-center rounded-full bg-secondary/80 hover:bg-secondary"
+              aria-label="Close player"
+              data-tv-close="true"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="stream-player-video min-h-0 flex-1 bg-background">
         <iframe

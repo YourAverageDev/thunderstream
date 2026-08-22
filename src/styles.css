@@ -233,7 +233,11 @@ html.tv-mode .stream-player-controls {
 
 html.tv-mode .stream-player-video {
   width: 100vw;
-  height: calc(100vh - 76px);
+  /* Let the flex layout (flex-1 on this element, in a flex-column shell)
+     size this instead of a hardcoded "100vh minus the controls bar"
+     calc() — that calc left a permanent 76px gap once player-only mode
+     could hide the controls bar entirely. */
+  height: 100%;
   overflow: hidden;
 }
 
