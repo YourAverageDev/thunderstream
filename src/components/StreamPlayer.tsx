@@ -77,17 +77,8 @@ export function StreamPlayer({
       primaryRef.current?.focus();
     }, isTvMode ? 350 : 80);
 
-    const focusWatchdog = isTvMode
-      ? window.setInterval(() => {
-          if (document.activeElement?.tagName === "IFRAME") {
-            primaryRef.current?.focus();
-          }
-        }, 300)
-      : undefined;
-
     return () => {
       window.clearTimeout(focusTimer);
-      if (focusWatchdog) window.clearInterval(focusWatchdog);
       window.removeEventListener("popstate", onPopState);
     };
   }, [isTvMode]);
@@ -104,7 +95,7 @@ export function StreamPlayer({
   function playerControls() {
     return Array.from(
       document.querySelectorAll<HTMLElement>(
-        '[data-tv-player="open"] button, [data-tv-player="open"] a[href], [data-tv-player="open"] select',
+        '[data-tv-player="open"] button, [data-tv-player="open"] a[href], [data-tv-player="open"] select, [data-tv-player="open"] iframe',
       ),
     ).filter((element) => {
       const rect = element.getBoundingClientRect();
@@ -159,10 +150,17 @@ export function StreamPlayer({
         }
 
         // A focused <select> needs arrow keys for its own native behavior
-        // (cycling its value, or navigating an open dropdown listbox) — let
-        // those through instead of hijacking them to move between controls.
+        // (cycling its value, or navigating an open dropdown listbox), and a
+        // focused <iframe> needs every key left alone too — the embedded
+        // video player inside it is the only thing that can actually react
+        // to Enter/Space (play/pause) or arrows (seek), and only if the
+        // browser is allowed to forward real, trusted key events into it.
+        // Intercepting those here (preventDefault + a no-op .click() on the
+        // iframe element) was blocking the one way a remote-only user could
+        // ever start playback on providers that require a keypress/click
+        // past their own "tap to play" overlay.
         const active = document.activeElement as HTMLElement | null;
-        if (active?.tagName === "SELECT") return;
+        if (active?.tagName === "SELECT" || active?.tagName === "IFRAME") return;
 
         if (TV_NEXT_KEYS.has(key)) {
           event.preventDefault();
@@ -279,8 +277,7 @@ export function StreamPlayer({
           referrerPolicy="origin"
           className="stream-frame h-full w-full"
           title={title}
-          tabIndex={-1}
-          data-tv-focusable="false"
+          tabIndex={0}
           onLoad={() => {
             if (isTvMode) window.setTimeout(() => primaryRef.current?.focus(), 80);
           }}
