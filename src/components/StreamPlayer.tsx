@@ -40,6 +40,23 @@ export function StreamPlayer({
   }, [onClose]);
 
   useEffect(() => {
+    // Whatever was focused when the player opened (the "Play"/episode
+    // button) gets removed from the DOM when this unmounts if it was
+    // inside the player's own controls, or is just left behind otherwise —
+    // either way, restore focus to it on close instead of letting focus
+    // fall back to <body>. Orphaned body focus meant the next D-pad press
+    // silently snapped back to the page's top focusable element with no
+    // visible scroll, which looked exactly like scrolling had stopped
+    // working after watching something.
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    return () => {
+      if (previouslyFocused && document.contains(previouslyFocused)) {
+        previouslyFocused.focus();
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     // On phones/tablets, prefer landscape while the video is open (best-effort —
     // most mobile browsers require fullscreen for this to succeed) and restore
     // free rotation on close. TV stays locked to landscape at the app level.
@@ -83,7 +100,9 @@ export function StreamPlayer({
 
   function playerControls() {
     return Array.from(
-      document.querySelectorAll<HTMLElement>('[data-tv-player="open"] button, [data-tv-player="open"] a[href]'),
+      document.querySelectorAll<HTMLElement>(
+        '[data-tv-player="open"] button, [data-tv-player="open"] a[href], [data-tv-player="open"] select',
+      ),
     ).filter((element) => {
       const rect = element.getBoundingClientRect();
       const style = getComputedStyle(element);
@@ -132,6 +151,12 @@ export function StreamPlayer({
           return;
         }
 
+        // A focused <select> needs arrow keys for its own native behavior
+        // (cycling its value, or navigating an open dropdown listbox) — let
+        // those through instead of hijacking them to move between controls.
+        const active = document.activeElement as HTMLElement | null;
+        if (active?.tagName === "SELECT") return;
+
         if (TV_NEXT_KEYS.has(key)) {
           event.preventDefault();
           event.stopPropagation();
@@ -147,8 +172,8 @@ export function StreamPlayer({
         }
 
         if (TV_SELECT_KEYS.has(key)) {
-          const active = document.activeElement as HTMLElement | null;
-          if (active?.closest('[data-tv-player="open"]') && active.tagName !== "SELECT") {
+          // active is guaranteed not to be a <select> here (early return above).
+          if (active?.closest('[data-tv-player="open"]')) {
             event.preventDefault();
             event.stopPropagation();
             active.click();

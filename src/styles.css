@@ -140,8 +140,17 @@ html.tv-mode body {
    level (e.g. a "Set Orientation"-style Fire TV app set to Landscape) —
    see the non-transform rotate *hint* further down for the fallback case. */
 
-html.tv-mode * {
-  /* Kill hover-only scale/translate effects that never trigger on a remote */
+/* Kill hover-only scale/translate effects that never trigger on a remote.
+   Scoped to interactive elements only (not `*`) — applying a transition
+   rule to every single element on a page with hundreds of poster cards is
+   unnecessary style-recalc overhead on Fire TV Stick's weak hardware and
+   was part of what made navigation feel sluggish. */
+html.tv-mode a,
+html.tv-mode button,
+html.tv-mode input,
+html.tv-mode select,
+html.tv-mode textarea,
+html.tv-mode [tabindex] {
   transition-property: outline, outline-offset, box-shadow, background-color,
     color, border-color, opacity, transform;
 }
