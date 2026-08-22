@@ -69,8 +69,17 @@ function withPlaybackParams(url: string): string {
   if (!getAutoplayPreference()) return url;
   try {
     const next = new URL(url);
+    // Different embed providers key off different param names/casings for
+    // "start without a click" — send every common convention. Muted params
+    // included too: browsers reliably allow autoplay when muted regardless
+    // of what the provider's own JS does, so on a device where nothing can
+    // click past a provider's "tap to play" overlay, a muted-but-playing
+    // video beats a permanently blank one.
     next.searchParams.set("autoplay", "1");
     next.searchParams.set("autoPlay", "1");
+    next.searchParams.set("autostart", "1");
+    next.searchParams.set("muted", "1");
+    next.searchParams.set("mute", "1");
     return next.toString();
   } catch {
     return url;

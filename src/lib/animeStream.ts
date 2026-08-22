@@ -51,8 +51,13 @@ function withPlaybackParams(url: string): string {
   if (!getAutoplayPreference()) return url;
   try {
     const next = new URL(url);
+    // See lib/stream.ts's withPlaybackParams for why both autoplay and
+    // muted params are sent together.
     next.searchParams.set("autoplay", "1");
     next.searchParams.set("autoPlay", "1");
+    next.searchParams.set("autostart", "1");
+    next.searchParams.set("muted", "1");
+    next.searchParams.set("mute", "1");
     return next.toString();
   } catch {
     return url;
