@@ -57,7 +57,9 @@ export const providers: Provider[] = [
 
 const STORAGE_KEY = "thunder_provider";
 
-const TV_SAFE_PROVIDERS: ProviderId[] = ["autoembed", "vidsrc", "vidsrccc", "vidlink", "twoembed", "superembed"];
+// VidLink confirmed working on Fire TV during testing — keep it first so
+// it's both the default and the fallback/first stop when cycling sources.
+const TV_SAFE_PROVIDERS: ProviderId[] = ["vidlink", "autoembed", "vidsrc", "vidsrccc", "twoembed", "superembed"];
 
 const TV_FALLBACK_PROVIDER: ProviderId = TV_SAFE_PROVIDERS[0];
 
