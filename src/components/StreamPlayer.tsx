@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { ExternalLink, Maximize2, Minimize2, RefreshCw, SkipForward, X } from "lucide-react";
+import { ExternalLink, Maximize2, MousePointer2, Minimize2, RefreshCw, SkipForward, X } from "lucide-react";
 import { lockLandscape, unlockOrientation } from "@/hooks/useTvMode";
 import { resolveTvKey, TV_BACK_KEYS, TV_NEXT_KEYS, TV_PREV_KEYS, TV_SELECT_KEYS } from "@/lib/tvKeys";
 
@@ -37,6 +37,16 @@ export function StreamPlayer({
   // "Player only" mode: hides the whole controls bar so nothing but the
   // video shows. Exited via the floating button or Back/Escape.
   const [focusMode, setFocusMode] = useState(false);
+  // On-screen cursor moved by the D-pad, for devices with no real pointer
+  // hardware at all. It can click/focus our own controls directly (via
+  // elementFromPoint), and can focus the video iframe — it cannot click
+  // anything *inside* the iframe, since no script can dispatch a real
+  // click across a cross-origin frame boundary; only genuine OS-level
+  // pointer input can do that. This is the honest ceiling of what's
+  // possible here, not a corner we cut.
+  const [cursorMode, setCursorMode] = useState(false);
+  const [cursorPos, setCursorPos] = useState<{ x: number; y: number } | null>(null);
+  const CURSOR_STEP = 64;
 
   useEffect(() => {
     onCloseRef.current = onClose;
@@ -122,6 +132,41 @@ export function StreamPlayer({
     setReloadKey((key) => key + 1);
   }
 
+  function toggleCursorMode() {
+    setCursorMode((active) => {
+      if (active) return false;
+      const rect = document.querySelector('[data-tv-player="open"]')?.getBoundingClientRect();
+      setCursorPos({
+        x: (rect?.width ?? window.innerWidth) / 2,
+        y: (rect?.height ?? window.innerHeight) / 2,
+      });
+      return true;
+    });
+  }
+
+  function moveCursor(dx: number, dy: number) {
+    setCursorPos((pos) => {
+      const base = pos ?? { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+      return {
+        x: Math.min(Math.max(base.x + dx, 0), window.innerWidth),
+        y: Math.min(Math.max(base.y + dy, 0), window.innerHeight),
+      };
+    });
+  }
+
+  function clickAtCursor() {
+    if (!cursorPos) return;
+    const target = document.elementFromPoint(cursorPos.x, cursorPos.y) as HTMLElement | null;
+    if (!target) return;
+    // For our own controls this is a real click. For the video iframe, a
+    // click on the iframe *element* can't reach anything inside it — the
+    // real value here is the .focus() call, which hands it genuine
+    // keyboard focus so Enter/Space/arrows can be forwarded to whatever
+    // the embedded player supports natively (see the key handler below).
+    target.focus?.();
+    target.click?.();
+  }
+
   function nextSource() {
     onNextSource?.();
     setReloadKey((key) => key + 1);
@@ -141,11 +186,26 @@ export function StreamPlayer({
         if (TV_BACK_KEYS.has(key)) {
           event.preventDefault();
           event.stopPropagation();
+          if (cursorMode) {
+            setCursorMode(false);
+            return;
+          }
           if (focusMode) {
             setFocusMode(false);
             return;
           }
           closePlayer();
+          return;
+        }
+
+        if (cursorMode) {
+          event.preventDefault();
+          event.stopPropagation();
+          if (key === "ArrowUp") moveCursor(0, -CURSOR_STEP);
+          else if (key === "ArrowDown") moveCursor(0, CURSOR_STEP);
+          else if (key === "ArrowLeft") moveCursor(-CURSOR_STEP, 0);
+          else if (key === "ArrowRight") moveCursor(CURSOR_STEP, 0);
+          else if (key === "Enter" || key === " ") clickAtCursor();
           return;
         }
 
@@ -244,6 +304,16 @@ export function StreamPlayer({
             >
               <Maximize2 className="h-4 w-4" />
             </button>
+            {isTvMode && (
+              <button
+                type="button"
+                onClick={toggleCursorMode}
+                className={`inline-grid h-10 w-10 place-items-center rounded-full hover:bg-secondary ${cursorMode ? "bg-primary text-primary-foreground" : "bg-secondary/80"}`}
+                aria-label="Toggle on-screen cursor"
+              >
+                <MousePointer2 className="h-4 w-4" />
+              </button>
+            )}
             {!isTvMode && (
               <a
                 href={streamUrl}
@@ -283,6 +353,15 @@ export function StreamPlayer({
           }}
         />
       </div>
+
+      {cursorMode && cursorPos && (
+        <div
+          className="pointer-events-none fixed z-50 -translate-x-1 -translate-y-1"
+          style={{ left: cursorPos.x, top: cursorPos.y }}
+        >
+          <MousePointer2 className="h-7 w-7 text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]" fill="white" />
+        </div>
+      )}
     </div>
   );
 }
