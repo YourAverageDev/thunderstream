@@ -45,8 +45,26 @@ export function StreamPlayer({
   // pointer input can do that. This is the honest ceiling of what's
   // possible here, not a corner we cut.
   const [cursorMode, setCursorMode] = useState(false);
-  const [cursorPos, setCursorPos] = useState<{ x: number; y: number } | null>(null);
+  // Position is a ref, not state — moving the cursor must NOT trigger a
+  // React re-render of this whole component on every single keypress.
+  // That's exactly what made it feel sluggish: a full render pass on a
+  // component with a heavy iframe sibling, on weak Fire TV Stick hardware,
+  // for every single D-pad step. The DOM node's position is set directly.
+  const cursorPosRef = useRef({ x: 0, y: 0 });
+  const cursorElRef = useRef<HTMLDivElement | null>(null);
   const CURSOR_STEP = 64;
+
+  function applyCursorPos() {
+    const el = cursorElRef.current;
+    if (el) {
+      el.style.left = `${cursorPosRef.current.x}px`;
+      el.style.top = `${cursorPosRef.current.y}px`;
+    }
+  }
+
+  useEffect(() => {
+    if (cursorMode) applyCursorPos();
+  }, [cursorMode]);
 
   useEffect(() => {
     onCloseRef.current = onClose;
@@ -135,28 +153,22 @@ export function StreamPlayer({
   function toggleCursorMode() {
     setCursorMode((active) => {
       if (active) return false;
-      const rect = document.querySelector('[data-tv-player="open"]')?.getBoundingClientRect();
-      setCursorPos({
-        x: (rect?.width ?? window.innerWidth) / 2,
-        y: (rect?.height ?? window.innerHeight) / 2,
-      });
+      cursorPosRef.current = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
       return true;
     });
   }
 
   function moveCursor(dx: number, dy: number) {
-    setCursorPos((pos) => {
-      const base = pos ?? { x: window.innerWidth / 2, y: window.innerHeight / 2 };
-      return {
-        x: Math.min(Math.max(base.x + dx, 0), window.innerWidth),
-        y: Math.min(Math.max(base.y + dy, 0), window.innerHeight),
-      };
-    });
+    cursorPosRef.current = {
+      x: Math.min(Math.max(cursorPosRef.current.x + dx, 0), window.innerWidth),
+      y: Math.min(Math.max(cursorPosRef.current.y + dy, 0), window.innerHeight),
+    };
+    applyCursorPos();
   }
 
   function clickAtCursor() {
-    if (!cursorPos) return;
-    const target = document.elementFromPoint(cursorPos.x, cursorPos.y) as HTMLElement | null;
+    const { x, y } = cursorPosRef.current;
+    const target = document.elementFromPoint(x, y) as HTMLElement | null;
     if (!target) return;
     // For our own controls this is a real click. For the video iframe, a
     // click on the iframe *element* can't reach anything inside it — the
@@ -354,11 +366,8 @@ export function StreamPlayer({
         />
       </div>
 
-      {cursorMode && cursorPos && (
-        <div
-          className="pointer-events-none fixed z-50 -translate-x-1 -translate-y-1"
-          style={{ left: cursorPos.x, top: cursorPos.y }}
-        >
+      {cursorMode && (
+        <div ref={cursorElRef} className="pointer-events-none fixed z-50 -translate-x-1 -translate-y-1">
           <MousePointer2 className="h-7 w-7 text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]" fill="white" />
         </div>
       )}
