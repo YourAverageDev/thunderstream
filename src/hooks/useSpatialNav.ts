@@ -116,6 +116,27 @@ function closePlayerIfOpen() {
 export function useSpatialNav(enabled: boolean) {
   useEffect(() => {
     if (!enabled) return;
+
+    // Coalesce D-pad auto-repeat to one move per animation frame. Holding a
+    // direction fires keydown far faster than a weak TV SoC can drain a full
+    // candidate-scan + geometry pass for each one — that queue-up *is* what
+    // reads as laggy/dropped navigation. Collapsing repeats keeps input
+    // responsive instead of falling further behind with every extra event.
+    let pendingDir: "up" | "down" | "left" | "right" | null = null;
+    let rafId: number | null = null;
+    const scheduleMove = (dir: "up" | "down" | "left" | "right") => {
+      pendingDir = dir;
+      if (rafId != null) return;
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        if (pendingDir) {
+          const next = pendingDir;
+          pendingDir = null;
+          move(next);
+        }
+      });
+    };
+
     const onKey = (e: KeyboardEvent) => {
       // Don't hijack typing, and don't hijack <select> — it needs its own
       // native key handling (arrows to change/cycle value, Enter/Space to
@@ -129,10 +150,10 @@ export function useSpatialNav(enabled: boolean) {
       const key = resolveTvKey(e);
 
       switch (key) {
-        case "ArrowRight": if (!isFormControl) { e.preventDefault(); move("right"); } break;
-        case "ArrowLeft":  if (!isFormControl) { e.preventDefault(); move("left"); }  break;
-        case "ArrowDown":  if (!isFormControl) { e.preventDefault(); move("down"); }  break;
-        case "ArrowUp":    if (!isFormControl) { e.preventDefault(); move("up"); }    break;
+        case "ArrowRight": if (!isFormControl) { e.preventDefault(); scheduleMove("right"); } break;
+        case "ArrowLeft":  if (!isFormControl) { e.preventDefault(); scheduleMove("left"); }  break;
+        case "ArrowDown":  if (!isFormControl) { e.preventDefault(); scheduleMove("down"); }  break;
+        case "ArrowUp":    if (!isFormControl) { e.preventDefault(); scheduleMove("up"); }    break;
         case "Enter":
         case " ": {
           const el = document.activeElement as HTMLElement | null;
@@ -175,6 +196,9 @@ export function useSpatialNav(enabled: boolean) {
         preferredCandidate(candidates())?.focus();
       }
     }, 300);
-    return () => window.removeEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      if (rafId != null) cancelAnimationFrame(rafId);
+    };
   }, [enabled]);
 }
