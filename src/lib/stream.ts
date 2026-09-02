@@ -57,9 +57,12 @@ export const providers: Provider[] = [
 
 const STORAGE_KEY = "thunder_provider";
 
-// "vidlink" deliberately excluded — reported broken on Samsung Tizen TV
-// (blank player) even though it works fine everywhere else.
+// "vidlink" first and confirmed on-device to actually play on Samsung
+// Tizen TV — every other provider here was reported blank on that same
+// device. (An earlier round of this list excluded vidlink based on a
+// misread of that report; it's the one provider that's actually TV-safe.)
 const TV_SAFE_PROVIDERS: ProviderId[] = [
+  "vidlink",
   "autoembed",
   "vidsrc",
   "vidsrccc",
