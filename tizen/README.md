@@ -1,45 +1,17 @@
 # ThunderStream for Samsung Tizen TV
+## 1. Enable Developer Mode on your Samsung TV(without this file transfer with apps2samsung is not possible)
+Enable Developer mode on your samsung TV depending on the model, do it by pressing 1,2,3,4,5 on number keypad  in app settings and wait some 5 - 10 secs and developer mode will appear. But double check again on you model if doesn't work check in other sources for your model.
+After developer settings open switch on developer mode enter the ip of your device you are going to use apps2samsung in.
 
-This packages ThunderStream as a Tizen **hosted web application** — a
-`.wgt` that tells the TV to load ThunderStream's own deployed URL
-fullscreen, rather than bundling a copy of the site.
+## 2. Download wtg file from the releases section of this repo: https://github.com/YourAverageDev/thunderstream/releases
 
-That's a deliberate choice, not a shortcut: ThunderStream's `/api/*` routes
-(`tmdb`, `omdb`, `jikan`, `tvmaze`, `anilist`) proxy those services using
-server-side secret API keys (see `netlify.toml` / `vercel.json`). A Tizen
-widget only ever runs static files with no server behind it, so a locally
-bundled copy could never reach those keys or those routes — it would just
-be a dead app. Pointing the widget at the real deployment is the only way
-the app can work on the TV at all, and it means every fix/update you ship
-to production is live on the TV instantly, with nothing to re-package.
+## 3. Sign & install with Apps2Samsung
 
-## 1. Build the `.wgt`
+[Apps2Samsung](https://github.com/Apps2Samsung/Apps2Samsung/releases) 
+Apps2Samsung is what we use to send files from your device to app, Download Apps2Samsung from releases. After downloading select the dropdown from release and scroll down to bottom to find "Custom WTG file" select that then open file manager and select the wtg file downloaded from this repo. Note: Apps2samsung has a bug going on where if you install the apk version of it in your phone and select custom wtg it doesn't install on the TV, but this bug happened to me so installing Apps2Samsung on your phone isn't recommended. Scan the network for your TV or enter the TV ip manually after that select "Download and Install" and it should work as expected.
 
-You need ThunderStream's own deployed URL (Netlify, Vercel, or a custom
-domain — wherever `npm run build` from the repo root actually gets
-deployed):
+## 4. Enjoy ThunderStream on your Samsung TV
 
-```sh
-THUNDERSTREAM_APP_URL=https://your-deployment.example npm run build:tizen
-```
-
-This writes `tizen/ThunderStream.wgt` (gitignored — it's a build output,
-regenerate it whenever the URL changes). It is **unsigned** on purpose:
-Tizen requires every app to be signed with a certificate before a TV will
-install it, and that step is what the signing tool below does for you.
-
-## 2. Sign & install with Apps2Samsung
-
-[Apps2Samsung](https://github.com/Apps2Samsung/Apps2Samsung/releases) is a
-cross-platform tool built exactly for this: point it at `ThunderStream.wgt`
-and it generates a matching certificate, signs the package, finds your TV
-on the network, and installs it — no Tizen Studio or Samsung developer
-account required. Download the latest release for your OS, add the `.wgt`
-from step 1, and follow its install flow.
-
-(Tizen Studio + `sdb`/the official Samsung Certificate Manager work too,
-if you'd rather go that route — the `.wgt` here is a standard unsigned
-Tizen widget package either way.)
 
 ## What's actually TV-specific here
 
