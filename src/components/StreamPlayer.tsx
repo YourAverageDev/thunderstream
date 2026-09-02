@@ -1,7 +1,14 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { ExternalLink, Maximize2, MousePointer2, Minimize2, RefreshCw, SkipForward, X } from "lucide-react";
 import { lockLandscape, unlockOrientation } from "@/hooks/useTvMode";
-import { resolveTvKey, TV_BACK_KEYS, TV_NEXT_KEYS, TV_PREV_KEYS, TV_SELECT_KEYS } from "@/lib/tvKeys";
+import {
+  isPickerOpen,
+  resolveTvKey,
+  TV_BACK_KEYS,
+  TV_NEXT_KEYS,
+  TV_PREV_KEYS,
+  TV_SELECT_KEYS,
+} from "@/lib/tvKeys";
 import { exitTizenApp } from "@/lib/tizen";
 
 type StreamPlayerProps = {
@@ -205,6 +212,11 @@ export function StreamPlayer({
           return;
         }
 
+        // The source-picker popover (our own Select-based dropdown) has to
+        // handle every key itself while it's open — otherwise Back would
+        // close the whole player instead of just closing the dropdown.
+        if (isPickerOpen()) return;
+
         if (TV_BACK_KEYS.has(key)) {
           event.preventDefault();
           event.stopPropagation();
@@ -231,18 +243,16 @@ export function StreamPlayer({
           return;
         }
 
-        // A focused <select> needs arrow keys for its own native behavior
-        // (cycling its value, or navigating an open dropdown listbox), and a
-        // focused <iframe> needs every key left alone too — the embedded
-        // video player inside it is the only thing that can actually react
-        // to Enter/Space (play/pause) or arrows (seek), and only if the
-        // browser is allowed to forward real, trusted key events into it.
+        // A focused <iframe> needs every key left alone — the embedded video
+        // player inside it is the only thing that can actually react to
+        // Enter/Space (play/pause) or arrows (seek), and only if the browser
+        // is allowed to forward real, trusted key events into it.
         // Intercepting those here (preventDefault + a no-op .click() on the
         // iframe element) was blocking the one way a remote-only user could
         // ever start playback on providers that require a keypress/click
         // past their own "tap to play" overlay.
         const active = document.activeElement as HTMLElement | null;
-        if (active?.tagName === "SELECT" || active?.tagName === "IFRAME") return;
+        if (active?.tagName === "IFRAME") return;
 
         if (TV_NEXT_KEYS.has(key)) {
           event.preventDefault();
@@ -259,7 +269,6 @@ export function StreamPlayer({
         }
 
         if (TV_SELECT_KEYS.has(key)) {
-          // active is guaranteed not to be a <select> here (early return above).
           if (active?.closest('[data-tv-player="open"]')) {
             event.preventDefault();
             event.stopPropagation();
@@ -366,6 +375,14 @@ export function StreamPlayer({
           src={frameSrc}
           allowFullScreen
           allow="autoplay; encrypted-media; picture-in-picture; fullscreen; accelerometer; gyroscope"
+          // Embed providers (vidlink, 2embed, etc.) load ad scripts that try
+          // to redirect the whole tab or pop up new windows/tabs. Sandboxing
+          // without allow-top-navigation/allow-popups makes the browser
+          // itself refuse those, regardless of what the ad script does —
+          // allow-same-origin keeps the provider's own login/DRM/session
+          // storage working, and allow-fullscreen/allow-pointer-lock keep
+          // the actual player UI intact.
+          sandbox="allow-scripts allow-same-origin allow-forms allow-fullscreen allow-pointer-lock"
           referrerPolicy="origin"
           className="stream-frame h-full w-full"
           title={title}

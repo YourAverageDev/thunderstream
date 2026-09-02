@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { resolveTvKey } from "@/lib/tvKeys";
+import { isPickerOpen, resolveTvKey } from "@/lib/tvKeys";
 import { exitTizenApp, isTizenWidget } from "@/lib/tizen";
 
 /**
@@ -146,7 +146,12 @@ export function useSpatialNav(enabled: boolean) {
       // preventDefault() blocks the browser's own default handling that
       // otherwise would have.
       const tag = (e.target as HTMLElement)?.tagName;
-      const isFormControl = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || (e.target as HTMLElement)?.isContentEditable;
+      const isFormControl =
+        tag === "INPUT" ||
+        tag === "TEXTAREA" ||
+        tag === "SELECT" ||
+        (e.target as HTMLElement)?.isContentEditable ||
+        isPickerOpen();
       const key = resolveTvKey(e);
 
       switch (key) {

@@ -8,6 +8,13 @@ import {
   type AnimeAudio,
   type AnimeProviderId,
 } from "@/lib/animeStream";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export function AnimeProviderSelect({
   provider,
@@ -25,36 +32,44 @@ export function AnimeProviderSelect({
   if (!mounted) return null;
   return (
     <div className="inline-flex items-center gap-2 text-xs text-muted-foreground">
-      <label className="inline-flex items-center gap-2">
+      <div className="inline-flex items-center gap-2">
         <span>Source:</span>
-        <select
+        <Select
           value={provider}
-          onChange={(e) => {
-            const id = e.target.value as AnimeProviderId;
-            saveAnimeProvider(id);
-            onProviderChange(id);
+          onValueChange={(id) => {
+            const providerId = id as AnimeProviderId;
+            saveAnimeProvider(providerId);
+            onProviderChange(providerId);
           }}
-          className="bg-secondary/80 border border-border rounded px-2 py-1 text-foreground text-xs outline-none focus:border-primary"
         >
-          {animeProviders.map((p) => (
-            <option key={p.id} value={p.id}>{p.name}</option>
-          ))}
-        </select>
-      </label>
-      <label className="inline-flex items-center gap-2">
-        <select
-          value={audio}
-          onChange={(e) => {
-            const value = e.target.value as AnimeAudio;
-            saveAnimeAudio(value);
-            onAudioChange(value);
-          }}
-          className="bg-secondary/80 border border-border rounded px-2 py-1 text-foreground text-xs outline-none focus:border-primary"
-        >
-          <option value="sub">Sub</option>
-          <option value="dub">Dub</option>
-        </select>
-      </label>
+          <SelectTrigger className="h-auto w-auto gap-1.5 rounded border-border bg-secondary/80 px-2 py-1 text-xs text-foreground">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {animeProviders.map((p) => (
+              <SelectItem key={p.id} value={p.id}>
+                {p.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <Select
+        value={audio}
+        onValueChange={(value) => {
+          const audioValue = value as AnimeAudio;
+          saveAnimeAudio(audioValue);
+          onAudioChange(audioValue);
+        }}
+      >
+        <SelectTrigger className="h-auto w-auto gap-1.5 rounded border-border bg-secondary/80 px-2 py-1 text-xs text-foreground">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="sub">Sub</SelectItem>
+          <SelectItem value="dub">Dub</SelectItem>
+        </SelectContent>
+      </Select>
     </div>
   );
 }
