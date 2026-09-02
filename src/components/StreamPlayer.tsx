@@ -378,14 +378,10 @@ export function StreamPlayer({
           // gyroscope/picture-in-picture are mobile-only permissions with no
           // TV meaning, carried over from a template and never used here.
           allow="autoplay; encrypted-media; fullscreen"
-          // Embed providers (vidlink, 2embed, etc.) load ad scripts that try
-          // to redirect the whole tab or pop up new windows/tabs. Sandboxing
-          // without allow-top-navigation/allow-popups makes the browser
-          // itself refuse those, regardless of what the ad script does —
-          // allow-same-origin keeps the provider's own login/DRM/session
-          // storage working, and allow-fullscreen/allow-pointer-lock keep
-          // the actual player UI intact.
-          sandbox="allow-scripts allow-same-origin allow-forms allow-fullscreen allow-pointer-lock"
+          // No sandbox attribute: vidlink (the one confirmed-working
+          // provider) detects it and refuses to play at all, sandboxed or
+          // not — an actual player beats blocking popups/redirects that
+          // aren't happening in practice.
           referrerPolicy="origin"
           className="stream-frame h-full w-full"
           title={title}
