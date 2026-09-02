@@ -46,3 +46,15 @@ export const TV_BACK_KEYS = new Set(["Backspace", "Escape", "GoBack", "BrowserBa
 export const TV_NEXT_KEYS = new Set(["ArrowRight", "ArrowDown"]);
 export const TV_PREV_KEYS = new Set(["ArrowLeft", "ArrowUp"]);
 export const TV_SELECT_KEYS = new Set(["Enter", " "]);
+
+// Our custom Select-based pickers (the provider/source dropdown) render
+// their open popover as a WAI-ARIA `role="listbox"` — a plain, fully
+// custom-rendered DOM popover, not a native OS picker. Native <select>
+// popups on Samsung's Tizen TV browser are notoriously unreliable with a
+// D-pad (they can swallow every key but "select" once open); this custom
+// popover sidesteps that entirely, but only if the global D-pad handlers
+// back off and let its own internal keyboard navigation run uncontested
+// while it's open.
+export function isPickerOpen(): boolean {
+  return typeof document !== "undefined" && document.querySelector('[role="listbox"]') !== null;
+}

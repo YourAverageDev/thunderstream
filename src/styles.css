@@ -195,6 +195,18 @@ html.tv-mode a.group img {
   object-fit: cover;   /* posters ARE 2:3 so cover == no distortion */
 }
 
+/* backdrop-filter is one of the most GPU-expensive effects a WebView can
+   composite, and the rating-badge pill uses it unconditionally on every
+   single poster card, all the time (not hover-gated) — with dozens of cards
+   on screen across a few rows, that's real per-frame compositing cost on
+   every scroll/focus-move on weak TV hardware. TV never needs it: fall back
+   to a plain, slightly more opaque pill instead. */
+html.tv-mode .backdrop-blur {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  background-color: rgb(0 0 0 / 0.85);
+}
+
 /* Hero / backdrop images: on TV, DO NOT crop-stretch. Letterbox is fine. */
 html.tv-mode section img[alt],
 html.tv-mode .hero-backdrop img {
