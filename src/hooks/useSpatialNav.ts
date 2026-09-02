@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { resolveTvKey } from "@/lib/tvKeys";
+import { exitTizenApp, isTizenWidget } from "@/lib/tizen";
 
 /**
  * Minimal D-pad / arrow-key spatial navigation for TV remotes
@@ -148,8 +149,22 @@ export function useSpatialNav(enabled: boolean) {
         case "BrowserBack":
           if (!isFormControl) {
             e.preventDefault();
-            if (!closePlayerIfOpen()) history.back();
+            if (closePlayerIfOpen()) break;
+            // Samsung's certification guidelines require Back to exit the
+            // app from its home screen rather than leaving the remote
+            // stuck on a page with nowhere left to go back to.
+            if (isTizenWidget() && window.location.pathname === "/") {
+              exitTizenApp();
+              break;
+            }
+            history.back();
           }
+          break;
+        // Tizen's dedicated hardware Exit key — always quits, regardless
+        // of what's on screen (never treated as page-back).
+        case "TizenExit":
+          e.preventDefault();
+          exitTizenApp();
           break;
       }
     };

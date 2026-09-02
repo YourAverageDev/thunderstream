@@ -15,6 +15,7 @@ const KNOWN_KEYS = new Set([
   "Escape",
   "GoBack",
   "BrowserBack",
+  "TizenExit",
 ]);
 
 const KEYCODE_TO_KEY: Record<number, string> = {
@@ -30,8 +31,10 @@ const KEYCODE_TO_KEY: Record<number, string> = {
   27: "Escape",
   111: "Escape", // Android ESCAPE
   461: "Backspace", // legacy Smart TV back button
-  10009: "Backspace", // Tizen back
-  10182: "Escape", // Tizen exit
+  10009: "Backspace", // Tizen Return/back button
+  // Tizen's dedicated hardware Exit key. Unlike Back, this always means
+  // "quit the app" — never treat it as page-back navigation.
+  10182: "TizenExit",
 };
 
 export function resolveTvKey(e: KeyboardEvent): string {
