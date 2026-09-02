@@ -10,6 +10,7 @@ import {
   TV_SELECT_KEYS,
 } from "@/lib/tvKeys";
 import { exitTizenApp } from "@/lib/tizen";
+import { PlaybackDiagnostics } from "@/components/PlaybackDiagnostics";
 
 type StreamPlayerProps = {
   title: string;
@@ -212,10 +213,10 @@ export function StreamPlayer({
           return;
         }
 
-        // The source-picker popover (our own Select-based dropdown) has to
-        // handle every key itself while it's open — otherwise Back would
-        // close the whole player instead of just closing the dropdown.
-        if (isPickerOpen()) return;
+        // The source-picker popover and the diagnostics panel each have to
+        // handle every key themselves while open — otherwise Back would
+        // close the whole player instead of just closing them.
+        if (isPickerOpen() || document.querySelector('[data-tv-modal="open"]')) return;
 
         if (TV_BACK_KEYS.has(key)) {
           event.preventDefault();
@@ -309,6 +310,7 @@ export function StreamPlayer({
 
           <div className="flex shrink-0 items-center gap-2">
             {providerControl}
+            <PlaybackDiagnostics />
             {isTvMode && onNextSource && (
               <button
                 type="button"
