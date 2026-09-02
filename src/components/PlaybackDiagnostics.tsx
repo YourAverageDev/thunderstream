@@ -7,8 +7,10 @@ import {
 
 // A button that reveals a plain-text panel of real platform capability
 // data, right on screen — the substitute for DevTools on a device that
-// can't have DevTools attached to it.
-export function PlaybackDiagnostics() {
+// can't have DevTools attached to it. With autoOpen, it shows itself
+// automatically a few seconds in (TV mode) instead of requiring someone
+// to find and press an unfamiliar button on a remote first.
+export function PlaybackDiagnostics({ autoOpen = false }: { autoOpen?: boolean }) {
   const [open, setOpen] = useState(false);
   const [snapshot, setSnapshot] = useState<PlaybackDiagnosticsSnapshot | null>(null);
   const errorsRef = useRef<string[]>([]);
@@ -29,6 +31,17 @@ export function PlaybackDiagnostics() {
       window.removeEventListener("unhandledrejection", onRejection);
     };
   }, []);
+
+  useEffect(() => {
+    if (!autoOpen) return;
+    // Wait a few seconds so a slow-to-fail provider has time to actually
+    // throw whatever error it's going to throw before the snapshot is taken.
+    const timer = window.setTimeout(() => {
+      setSnapshot(collectPlaybackDiagnostics(errorsRef.current));
+      setOpen(true);
+    }, 4000);
+    return () => window.clearTimeout(timer);
+  }, [autoOpen]);
 
   return (
     <>
