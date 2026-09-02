@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Tizen widget manifest for Samsung Smart TVs.
+
+  This packages ThunderStream as a "hosted web application": Tizen's
+  content loader points straight at the app's own live, deployed URL
+  (below) instead of bundling a copy of the site inside the .wgt. That's
+  required here, not just simpler — ThunderStream's /api/* routes proxy
+  TMDB/OMDb/Jikan/TVMaze with server-side secret keys, so the app can only
+  ever run against a real deployment, never as static files on the TV.
+
+  <content src> is filled in by `npm run build:tizen` from the
+  THUNDERSTREAM_APP_URL env var — see tizen/README.md.
+-->
+<widget xmlns="http://www.w3.org/ns/widgets" xmlns:tizen="http://tizen.org/ns/widgets"
+        id="https://github.com/YourAverageDev/thunderstream/" version="1.0.0"
+        height="1080" width="1920" viewmodes="fullscreen">
+  <tizen:application id="ThndrStrm1.ThunderStream" package="ThndrStrm1" required_version="2.4"/>
+  <name>ThunderStream</name>
+  <content src="__THUNDERSTREAM_APP_URL__"/>
+  <icon src="icon.png"/>
+  <tizen:metadata key="http://tizen.org/metadata/app_ui_type/base_screen_resolution" value="extensive"/>
+  <feature name="http://tizen.org/feature/screen.size.all"/>
+  <tizen:privilege name="http://tizen.org/privilege/internet"/>
+  <tizen:privilege name="http://tizen.org/privilege/tv.inputdevice"/>
+  <tizen:profile name="tv-samsung"/>
+  <tizen:setting screen-orientation="landscape" context-menu="disable" background-support="disable"
+                 encryption="disable" install-location="auto" hwkey-event="enable"/>
+  <access origin="*" subdomains="true"/>
+  <tizen:content-security-policy>
+    default-src * data: blob: 'unsafe-inline';
+    script-src * 'unsafe-inline' 'unsafe-eval';
+    style-src * 'unsafe-inline';
+    font-src * data:;
+    media-src * blob:;
+    connect-src *;
+    img-src * data: blob:;
+  </tizen:content-security-policy>
+</widget>

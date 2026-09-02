@@ -60,6 +60,10 @@ export function isTvDevice(): boolean {
   if (pref === "on") return true;
   if (pref === "off") return false;
 
+  // Running inside the packaged Tizen widget (tizen/config.xml) is an
+  // unambiguous signal — no UA sniffing needed.
+  if (typeof (window as any).tizen !== "undefined") return true;
+
   const ua = navigator.userAgent || "";
   const tvUa = /AFT|Fire TV|SMART-?TV|SmartTV|GoogleTV|Android TV|BRAVIA|Tizen|Web0S|WebOS|NetCast|HbbTV|DTV|Roku|AppleTV|CrKey/i;
   if (tvUa.test(ua)) return true;

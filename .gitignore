@@ -23,6 +23,10 @@ dist-ssr
 # Vercel
 .vercel
 
+# Tizen (.wgt) packaging
+.tizen-stage/
+tizen/ThunderStream.wgt
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

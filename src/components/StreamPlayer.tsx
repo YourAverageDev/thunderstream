@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { ExternalLink, Maximize2, MousePointer2, Minimize2, RefreshCw, SkipForward, X } from "lucide-react";
 import { lockLandscape, unlockOrientation } from "@/hooks/useTvMode";
 import { resolveTvKey, TV_BACK_KEYS, TV_NEXT_KEYS, TV_PREV_KEYS, TV_SELECT_KEYS } from "@/lib/tvKeys";
+import { exitTizenApp } from "@/lib/tizen";
 
 type StreamPlayerProps = {
   title: string;
@@ -194,6 +195,15 @@ export function StreamPlayer({
       aria-label={title}
       onKeyDownCapture={(event) => {
         const key = resolveTvKey(event.nativeEvent);
+
+        // The hardware Exit key always quits the whole app, even from
+        // inside the player — never just close the player for it.
+        if (key === "TizenExit") {
+          event.preventDefault();
+          event.stopPropagation();
+          exitTizenApp();
+          return;
+        }
 
         if (TV_BACK_KEYS.has(key)) {
           event.preventDefault();

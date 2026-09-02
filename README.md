@@ -37,6 +37,12 @@ Welcome to ThunderStream, a clean and simple movie streaming app designed for pe
 4. Enjoy your favorite movies! 🍿
 
 
+📺 Samsung Smart TV
+
+Want ThunderStream on a Samsung Tizen TV? See [tizen/README.md](tizen/README.md)
+for building and installing the `.wgt`.
+
+
 
 💖 Why ThunderStream?
 
