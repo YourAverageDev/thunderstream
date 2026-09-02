@@ -4,13 +4,7 @@ import { useState } from "react";
 import { anilist } from "@/lib/anilist";
 import { getAnimeStreamUrl, getNextAnimeProvider } from "@/lib/animeStream";
 import { AnimeProviderSelect, useAnimeProviderPrefs } from "@/components/AnimeProviderSelect";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { TvSelect } from "@/components/TvSelect";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { StreamPlayer } from "@/components/StreamPlayer";
@@ -79,21 +73,14 @@ function AnimeDetail() {
               <div className="flex flex-wrap items-center gap-3 pt-2">
                 <div className="inline-flex items-center gap-2 text-xs text-muted-foreground">
                   <span>Episode:</span>
-                  <Select
+                  <TvSelect
                     value={String(selectedEpisode)}
-                    onValueChange={(value) => setSelectedEpisode(Number(value))}
-                  >
-                    <SelectTrigger className="h-9 w-auto gap-1.5 rounded-full border-border bg-secondary px-3 text-sm">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Array.from({ length: airedEpisodes as number }, (_, i) => i + 1).map((n) => (
-                        <SelectItem key={n} value={String(n)}>
-                          Episode {n}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    options={Array.from({ length: airedEpisodes as number }, (_, i) => i + 1).map((n) => ({
+                      value: String(n),
+                      label: `Episode ${n}`,
+                    }))}
+                    onChange={(value) => setSelectedEpisode(Number(value))}
+                  />
                 </div>
                 <AnimeProviderSelect provider={provider} audio={audio} onProviderChange={setProvider} onAudioChange={setAudio} />
                 <button

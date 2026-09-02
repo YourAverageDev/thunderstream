@@ -374,7 +374,10 @@ export function StreamPlayer({
           ref={frameRef}
           src={frameSrc}
           allowFullScreen
-          allow="autoplay; encrypted-media; picture-in-picture; fullscreen; accelerometer; gyroscope"
+          // Trimmed to what a TV set-top actually needs — accelerometer/
+          // gyroscope/picture-in-picture are mobile-only permissions with no
+          // TV meaning, carried over from a template and never used here.
+          allow="autoplay; encrypted-media; fullscreen"
           // Embed providers (vidlink, 2embed, etc.) load ad scripts that try
           // to redirect the whole tab or pop up new windows/tabs. Sandboxing
           // without allow-top-navigation/allow-popups makes the browser

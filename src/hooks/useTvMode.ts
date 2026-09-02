@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { isTizenWidget } from "@/lib/tizen";
 
 const TV_MODE_KEY = "thunder_tv_mode";
 export type TvModePreference = "auto" | "on" | "off";
@@ -62,7 +63,7 @@ export function isTvDevice(): boolean {
 
   // Running inside the packaged Tizen widget (tizen/config.xml) is an
   // unambiguous signal — no UA sniffing needed.
-  if (typeof (window as any).tizen !== "undefined") return true;
+  if (isTizenWidget()) return true;
 
   const ua = navigator.userAgent || "";
   const tvUa = /AFT|Fire TV|SMART-?TV|SmartTV|GoogleTV|Android TV|BRAVIA|Tizen|Web0S|WebOS|NetCast|HbbTV|DTV|Roku|AppleTV|CrKey/i;

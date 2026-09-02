@@ -4,13 +4,7 @@ import { useEffect, useState } from "react";
 import { tmdb, IMG } from "@/lib/tmdb";
 import { getNextTvProvider, getTvSafeProvider, getTvStreamUrl, saveProvider } from "@/lib/stream";
 import { ProviderSelect, useProvider } from "@/components/ProviderSelect";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { TvSelect } from "@/components/TvSelect";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useIsTvMode } from "@/hooks/useTvMode";
@@ -102,24 +96,17 @@ function TvPage() {
           <h2 className="font-display text-2xl md:text-3xl tracking-wide">Episodes</h2>
           <div className="flex items-center gap-3 flex-wrap">
             <ProviderSelect value={providerId} onChange={setProviderId} />
-            <Select
+            <TvSelect
               value={String(season)}
-              onValueChange={(value) => {
+              options={validSeasons.map((s) => ({
+                value: String(s.season_number),
+                label: `Season ${s.season_number}`,
+              }))}
+              onChange={(value) => {
                 setSeason(Number(value));
                 setEpisode(null);
               }}
-            >
-              <SelectTrigger className="h-10 w-auto gap-1.5 rounded-full border-border bg-secondary px-4 text-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {validSeasons.map((s) => (
-                  <SelectItem key={s.id} value={String(s.season_number)}>
-                    Season {s.season_number}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            />
           </div>
         </div>
 

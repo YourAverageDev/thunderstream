@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { isPickerOpen, resolveTvKey } from "@/lib/tvKeys";
+import { resolveTvKey } from "@/lib/tvKeys";
 import { exitTizenApp, isTizenWidget } from "@/lib/tizen";
 
 /**
@@ -22,7 +22,16 @@ function visible(el: Element) {
 }
 
 function activeScope(): ParentNode {
-  return document.querySelector<HTMLElement>('[data-tv-player="open"]') ?? document;
+  // While our own TvSelect popover is open, keep the D-pad contained to its
+  // trigger + options instead of letting it wander off into the rest of the
+  // page — the popover is just plain buttons in the normal DOM (no portal),
+  // so without this an arrow press could jump straight past it to whatever
+  // else is geometrically nearby.
+  return (
+    document.querySelector<HTMLElement>('[data-tv-player="open"]') ??
+    document.querySelector<HTMLElement>('[data-tv-select="open"]') ??
+    document
+  );
 }
 
 function playerIsOpen() {
@@ -147,11 +156,7 @@ export function useSpatialNav(enabled: boolean) {
       // otherwise would have.
       const tag = (e.target as HTMLElement)?.tagName;
       const isFormControl =
-        tag === "INPUT" ||
-        tag === "TEXTAREA" ||
-        tag === "SELECT" ||
-        (e.target as HTMLElement)?.isContentEditable ||
-        isPickerOpen();
+        tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || (e.target as HTMLElement)?.isContentEditable;
       const key = resolveTvKey(e);
 
       switch (key) {

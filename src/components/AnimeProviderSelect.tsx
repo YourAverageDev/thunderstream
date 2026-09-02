@@ -8,13 +8,7 @@ import {
   type AnimeAudio,
   type AnimeProviderId,
 } from "@/lib/animeStream";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { TvSelect } from "@/components/TvSelect";
 
 export function AnimeProviderSelect({
   provider,
@@ -34,42 +28,26 @@ export function AnimeProviderSelect({
     <div className="inline-flex items-center gap-2 text-xs text-muted-foreground">
       <div className="inline-flex items-center gap-2">
         <span>Source:</span>
-        <Select
+        <TvSelect
           value={provider}
-          onValueChange={(id) => {
-            const providerId = id as AnimeProviderId;
-            saveAnimeProvider(providerId);
-            onProviderChange(providerId);
+          options={animeProviders.map((p) => ({ value: p.id, label: p.name }))}
+          onChange={(id) => {
+            saveAnimeProvider(id);
+            onProviderChange(id);
           }}
-        >
-          <SelectTrigger className="h-auto w-auto gap-1.5 rounded border-border bg-secondary/80 px-2 py-1 text-xs text-foreground">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {animeProviders.map((p) => (
-              <SelectItem key={p.id} value={p.id}>
-                {p.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        />
       </div>
-      <Select
+      <TvSelect
         value={audio}
-        onValueChange={(value) => {
-          const audioValue = value as AnimeAudio;
-          saveAnimeAudio(audioValue);
-          onAudioChange(audioValue);
+        options={[
+          { value: "sub", label: "Sub" },
+          { value: "dub", label: "Dub" },
+        ]}
+        onChange={(value) => {
+          saveAnimeAudio(value);
+          onAudioChange(value);
         }}
-      >
-        <SelectTrigger className="h-auto w-auto gap-1.5 rounded border-border bg-secondary/80 px-2 py-1 text-xs text-foreground">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="sub">Sub</SelectItem>
-          <SelectItem value="dub">Dub</SelectItem>
-        </SelectContent>
-      </Select>
+      />
     </div>
   );
 }
