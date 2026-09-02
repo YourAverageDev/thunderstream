@@ -27,13 +27,33 @@
   <tizen:setting screen-orientation="landscape" context-menu="disable" background-support="disable"
                  encryption="disable" install-location="auto" hwkey-event="enable"/>
   <access origin="*" subdomains="true"/>
+  <!--
+    allow-navigation is what lets frames inside the app navigate to
+    domains other than the app's own content origin. Without it, Tizen's
+    web runtime silently blocks every player iframe (vidlink, vidsrc, ...)
+    before it ever loads — a black frame, no JS error, every provider,
+    TV only — while the exact same page works in a desktop browser.
+    <access> above only covers resource fetches; it does not cover
+    navigation, which is what an iframe's src is.
+  -->
+  <tizen:allow-navigation>*</tizen:allow-navigation>
+  <!--
+    Fully permissive on purpose: this is a hosted app (nothing is packaged
+    locally), so the real security boundary is whatever the production
+    HTTPS deployment itself enforces. This only exists so the runtime's
+    own packaged-content CSP never gets in the way of third-party player
+    frames, their blob:/data: media and worker URLs, or nested frames.
+  -->
   <tizen:content-security-policy>
-    default-src * data: blob: 'unsafe-inline';
-    script-src * 'unsafe-inline' 'unsafe-eval';
-    style-src * 'unsafe-inline';
-    font-src * data:;
-    media-src * blob:;
-    connect-src *;
+    default-src * data: blob: 'unsafe-inline' 'unsafe-eval';
+    script-src * data: blob: 'unsafe-inline' 'unsafe-eval';
+    style-src * data: blob: 'unsafe-inline';
     img-src * data: blob:;
+    font-src * data: blob:;
+    media-src * data: blob:;
+    connect-src * data: blob:;
+    frame-src * data: blob:;
+    child-src * data: blob:;
+    worker-src * data: blob:;
   </tizen:content-security-policy>
 </widget>
