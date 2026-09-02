@@ -374,10 +374,11 @@ export function StreamPlayer({
           ref={frameRef}
           src={frameSrc}
           allowFullScreen
-          // Trimmed to what a TV set-top actually needs — accelerometer/
-          // gyroscope/picture-in-picture are mobile-only permissions with no
-          // TV meaning, carried over from a template and never used here.
-          allow="autoplay; encrypted-media; fullscreen"
+          // Restored to the full original permission list. Trimming this
+          // was the same mistake as the sandbox attribute — an unproven
+          // restriction added on a provider (vidlink) that's now confirmed
+          // to actively refuse to play under restricted iframe permissions.
+          allow="autoplay; encrypted-media; picture-in-picture; fullscreen; accelerometer; gyroscope"
           // No sandbox attribute: vidlink (the one confirmed-working
           // provider) detects it and refuses to play at all, sandboxed or
           // not — an actual player beats blocking popups/redirects that
