@@ -43,6 +43,25 @@ export function StreamPlayer({
   const onCloseRef = useRef(onClose);
   const [reloadKey, setReloadKey] = useState(0);
   const frameSrc = useMemo(() => streamUrl, [streamUrl, reloadKey]);
+  // Tizen's browser has a documented bug where a second <video> element
+  // starting up before a previous one has actually torn down corrupts both
+  // — "sourcebuffers from one video element will be removed, and events
+  // intended for different video elements will be emitted to both"
+  // (forum.developer.samsung.com/t/iframe-and-webapis-tizen-web-apps/30031).
+  // Every time the target URL changes (including the very first load),
+  // navigate the iframe to about:blank first and hold there briefly so the
+  // browser genuinely unloads whatever came before — a real document
+  // navigation, not just swapping the src attribute — before the next
+  // source's own video element ever starts initializing.
+  const [displaySrc, setDisplaySrc] = useState("about:blank");
+  useEffect(() => {
+    setDisplaySrc("about:blank");
+    const timer = window.setTimeout(() => setDisplaySrc(frameSrc), 300);
+    return () => window.clearTimeout(timer);
+    // reloadKey is intentionally included even though frameSrc's *value*
+    // doesn't change on a plain reload — it's what makes the reload button
+    // still force a real blank-then-reload navigation.
+  }, [frameSrc, reloadKey]);
   // "Player only" mode: hides the whole controls bar so nothing but the
   // video shows. Exited via the floating button or Back/Escape.
   const [focusMode, setFocusMode] = useState(false);
@@ -372,9 +391,13 @@ export function StreamPlayer({
 
       <div className="stream-player-video min-h-0 flex-1 bg-background">
         <iframe
-          key={`${frameSrc}-${reloadKey}`}
+          // No key tied to the source anymore: forcing a full DOM
+          // remount on every switch only removes the old element, it
+          // doesn't guarantee the browser actually releases the previous
+          // video/decoder resources before the new one starts (see the
+          // about:blank transition above, which does).
           ref={frameRef}
-          src={frameSrc}
+          src={displaySrc}
           allowFullScreen
           // Restored to the full original permission list. Trimming this
           // was the same mistake as the sandbox attribute — an unproven
