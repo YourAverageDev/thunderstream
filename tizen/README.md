@@ -15,6 +15,14 @@ Apps2Samsung is what we use to send files from your device to app, Download Apps
 
 ## What's actually TV-specific here
 
+- **`<tizen:allow-navigation>*</tizen:allow-navigation>` in `config.xml` — do not
+  remove.** Tizen's web runtime blocks any frame from navigating to a domain
+  not listed here, and `<access>` does *not* cover that (it only covers
+  resource fetches). Without it every player iframe (vidlink, vidsrc, …) is
+  silently blocked before it loads: a black player, no error, every source,
+  TV only, while the same page works fine in a desktop browser. This was the
+  root cause of the original "player is black on the TV" problem.
+
 - **`config.xml`** — the widget manifest: app id/name, 1920×1080 landscape
   viewport, the `internet` and `tv.inputdevice` privileges the app needs,
   and a permissive `tizen:content-security-policy` (the real security

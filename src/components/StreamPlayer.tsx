@@ -10,7 +10,6 @@ import {
   TV_SELECT_KEYS,
 } from "@/lib/tvKeys";
 import { exitTizenApp } from "@/lib/tizen";
-import { PlaybackDiagnostics } from "@/components/PlaybackDiagnostics";
 
 type StreamPlayerProps = {
   title: string;
@@ -43,16 +42,13 @@ export function StreamPlayer({
   const onCloseRef = useRef(onClose);
   const [reloadKey, setReloadKey] = useState(0);
   const frameSrc = useMemo(() => streamUrl, [streamUrl, reloadKey]);
-  // Tizen's browser has a documented bug where a second <video> element
-  // starting up before a previous one has actually torn down corrupts both
-  // — "sourcebuffers from one video element will be removed, and events
-  // intended for different video elements will be emitted to both"
-  // (forum.developer.samsung.com/t/iframe-and-webapis-tizen-web-apps/30031).
-  // Every time the target URL changes (including the very first load),
-  // navigate the iframe to about:blank first and hold there briefly so the
-  // browser genuinely unloads whatever came before — a real document
-  // navigation, not just swapping the src attribute — before the next
-  // source's own video element ever starts initializing.
+  // Every source change (including the very first load) goes through a
+  // brief about:blank navigation first. Two reasons: it's a genuine
+  // document unload of whatever player was there before, so the previous
+  // provider's video/decoder is released before the next one initializes
+  // (Tizen is known to misbehave when two <video>s overlap); and it makes
+  // the reload button a real reload — re-setting src to the URL it's
+  // already showing doesn't reliably reload in every engine.
   const [displaySrc, setDisplaySrc] = useState("about:blank");
   useEffect(() => {
     setDisplaySrc("about:blank");
@@ -232,10 +228,10 @@ export function StreamPlayer({
           return;
         }
 
-        // The source-picker popover and the diagnostics panel each have to
-        // handle every key themselves while open — otherwise Back would
-        // close the whole player instead of just closing them.
-        if (isPickerOpen() || document.querySelector('[data-tv-modal="open"]')) return;
+        // The source-picker popover has to handle every key itself while
+        // it's open — otherwise Back would close the whole player instead
+        // of just closing the dropdown.
+        if (isPickerOpen()) return;
 
         if (TV_BACK_KEYS.has(key)) {
           event.preventDefault();
@@ -329,7 +325,6 @@ export function StreamPlayer({
 
           <div className="flex shrink-0 items-center gap-2">
             {providerControl}
-            <PlaybackDiagnostics autoOpen={isTvMode} />
             {isTvMode && onNextSource && (
               <button
                 type="button"

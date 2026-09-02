@@ -274,6 +274,20 @@ html.tv-mode .stream-frame {
   box-shadow: none !important;
 }
 
+/* TVs composite playing video on a hardware plane that can punch through
+   any z-index, so an open source dropdown could be drawn *behind* the
+   video with no way to see the options. Hide the frame while a picker
+   is open (visibility keeps it loaded; it's back the moment it closes). */
+html.tv-mode [data-tv-player="open"]:has([data-tv-select="open"]) .stream-frame {
+  visibility: hidden;
+}
+
+/* The BuildBadge strip (h-6) sits fixed at the very top; shift the fixed
+   navbar down under it so the badge never covers the logo/nav links. */
+header {
+  top: 1.5rem;
+}
+
 /* Larger nav & buttons for remote comfort */
 html.tv-mode header nav a,
 html.tv-mode header a,

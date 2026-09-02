@@ -6,7 +6,9 @@ import { BUILD_LABEL } from "@/lib/buildInfo";
 // visually confirm it one way or the other.
 export function BuildBadge() {
   return (
-    <div className="fixed inset-x-0 top-0 z-[9999] flex items-center justify-center bg-black py-1 text-center text-xs font-bold tracking-wide text-primary">
+    // h-6 (1.5rem) is load-bearing: styles.css offsets the fixed <header>
+    // by the same amount so this never covers the navbar's logo/links.
+    <div className="fixed inset-x-0 top-0 z-[9999] flex h-6 items-center justify-center bg-black text-center text-xs font-bold tracking-wide text-primary">
       ThunderStream — {BUILD_LABEL}
     </div>
   );
